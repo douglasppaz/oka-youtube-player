@@ -8,50 +8,61 @@ var http = require('http'),
     youtubedl = require('youtube-dl'),
     flatfile = require('flat-file-db'),
     db = flatfile('./oka.db'),
-    downloading = {};
+    downloading = [];
 
 db.on('open', function() {
     console.log('database ready!');
+    db.keys().forEach(function (key){
+        console.log(key);
+    });
 });
 
-function handleRequest(request, response){
-    try {
-        console.log(request.url);
-        dispatcher.dispatch(request, response);
-    } catch (err){
-        console.error(err);
-    }
+function updateVideoIntance(id, field, value){
+    var instance = db.get(id);
+    instance[field] = value;
+    db.put(id, instance);
 }
 
 function downloadVideo(id){
     var video = youtubedl(
-        'http://www.youtube.com/watch?v=' + id,
-        ['--format=18'],
-        {
-            cwd: DOWNLOAD_DIR,
-            maxBuffer: Infinity
-        }
-    ),
-        filepath = DOWNLOAD_DIR + id + '.mp4';
+            'http://www.youtube.com/watch?v=' + id,
+            ['--format=18'],
+            {
+                cwd: DOWNLOAD_DIR,
+                maxBuffer: Infinity
+            }
+        ),
+        filepath = DOWNLOAD_DIR + id + '.mp4',
+        pos = 0;
 
-    video.on('info', function(info) {
-        console.log('Download started');
-        console.log('filename: ' + info._filename);
-        console.log('size: ' + info.size);
+    video.on('info', function (info){
+        updateVideoIntance(id, 'title', info.title);
+        updateVideoIntance(id, 'size', info.size);
+    });
+    video.on('error', function (err){
+        updateVideoIntance(id, 'status', -err.code)
+    });
+    video.on('data', function data(chunk) {
+        pos += chunk.length;
+        var instance = db.get(id),
+            size = instance.size;
+        if(size){
+            var percent = (pos / size * 100).toFixed(2);
+            if(percent - instance.percent > 10 || percent == 100) {
+                updateVideoIntance(id, 'percent', parseInt(percent));
+            }
+            console.log(id + ': ' + percent + '%');
+        }
+    });
+    video.on('end', function () {
+        updateVideoIntance(id, 'status', 2);
     });
 
     video.pipe(fs.createWriteStream(filepath));
-    var instance = db.get(id);
-    instance.file = filepath;
-    db.put(id, instance);
 
-    downloading[id] = true;
+    updateVideoIntance(id, 'file', filepath);
 
-    video.on('end', function() {
-        var instance = db.get(id);
-        instance.status = 2;
-        db.put(id, instance);
-    });
+    downloading.push(id);
 }
 
 function loadVideo(id){
@@ -60,20 +71,19 @@ function loadVideo(id){
         db.put(id, {
             title: null,
             status: 0,
-            file: null
+            file: null,
+            size: 0,
+            percent: 0
         });
         instance = db.get(id);
     }
 
     if(instance.status == 0){
         downloadVideo(id);
-        instance.status = 1;
-        db.put(id, instance);
+        updateVideoIntance(id, 'status', 1);
     }
-    if(instance.status == 1){
-        if(downloading[id] === undefined || !downloading){
-            downloadVideo(id);
-        }
+    if(instance.status == 1 && downloading.indexOf(id) == -1){
+        downloadVideo(id);
     }
 
     return instance;
@@ -90,6 +100,15 @@ dispatcher
         response.writeHead(200, {'Content-Type': 'application/json'});
         response.end(JSON.stringify(loadVideo(id)));
     });
+
+function handleRequest(request, response){
+    try {
+        console.log(request.url);
+        dispatcher.dispatch(request, response);
+    } catch (err){
+        console.error(err);
+    }
+}
 
 var server = http.createServer(handleRequest);
 server.listen(PORT, function (){
