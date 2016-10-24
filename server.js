@@ -5,7 +5,14 @@ const
 var http = require('http'),
     dispatcher = require('httpdispatcher'),
     fs = require('fs'),
-    youtubedl = require('youtube-dl');
+    youtubedl = require('youtube-dl'),
+    flatfile = require('flat-file-db'),
+    db = flatfile('./oka.db'),
+    downloading = {};
+
+db.on('open', function() {
+    console.log('database ready!');
+});
 
 function handleRequest(request, response){
     try {
@@ -16,7 +23,7 @@ function handleRequest(request, response){
     }
 }
 
-function loadVideo(id){
+function downloadVideo(id){
     var video = youtubedl(
         'http://www.youtube.com/watch?v=' + id,
         ['--format=18'],
@@ -24,29 +31,64 @@ function loadVideo(id){
             cwd: DOWNLOAD_DIR,
             maxBuffer: Infinity
         }
-    );
+    ),
+        filepath = DOWNLOAD_DIR + id + '.mp4';
 
     video.on('info', function(info) {
         console.log('Download started');
-        console.log('filename: ' + info.filename);
+        console.log('filename: ' + info._filename);
         console.log('size: ' + info.size);
     });
 
-    video.pipe(fs.createWriteStream(DOWNLOAD_DIR + id + '.mp4'));
+    video.pipe(fs.createWriteStream(filepath));
+    var instance = db.get(id);
+    instance.file = filepath;
+    db.put(id, instance);
 
-    return {};
+    downloading[id] = true;
+
+    video.on('end', function() {
+        var instance = db.get(id);
+        instance.status = 2;
+        db.put(id, instance);
+    });
+}
+
+function loadVideo(id){
+    var instance = db.get(id);
+    if(instance === undefined){
+        db.put(id, {
+            title: null,
+            status: 0,
+            file: null
+        });
+        instance = db.get(id);
+    }
+
+    if(instance.status == 0){
+        downloadVideo(id);
+        instance.status = 1;
+        db.put(id, instance);
+    }
+    if(instance.status == 1){
+        if(downloading[id] === undefined || !downloading){
+            downloadVideo(id);
+        }
+    }
+
+    return instance;
 }
 
 dispatcher
-    .onGet('/', function(request, respose) {
-        respose.writeHead(200, {'Content-Type': 'text/plain'});
-        respose.end('Index');
+    .onGet('/', function(request, response) {
+        response.writeHead(200, {'Content-Type': 'text/plain'});
+        response.end('Index');
     });
 dispatcher
-    .onError(function(request, respose) {
+    .onError(function(request, response) {
         var id = request.url.substring(1);
-        loadVideo(id);
-        respose.end(id);
+        response.writeHead(200, {'Content-Type': 'application/json'});
+        response.end(JSON.stringify(loadVideo(id)));
     });
 
 var server = http.createServer(handleRequest);
