@@ -7,6 +7,7 @@ var http = require('http'),
     fs = require('fs'),
     youtubedl = require('youtube-dl'),
     flatfile = require('flat-file-db'),
+    request = require('request'),
     db = flatfile('./oka.db'),
     downloading = [];
 
@@ -38,6 +39,8 @@ function downloadVideo(id){
     video.on('info', function (info){
         updateVideoIntance(id, 'title', info.title);
         updateVideoIntance(id, 'size', info.size);
+        updateVideoIntance(id, 'thumbnail', info.thumbnail);
+        console.log(info.thumbnail);
     });
     video.on('error', function (err){
         updateVideoIntance(id, 'status', -err.code)
@@ -50,8 +53,8 @@ function downloadVideo(id){
             var percent = (pos / size * 100).toFixed(2);
             if(percent - instance.percent > 10 || percent == 100) {
                 updateVideoIntance(id, 'percent', parseInt(percent));
+                console.log(id + ': ' + percent + '%');
             }
-            console.log(id + ': ' + percent + '%');
         }
     });
     video.on('end', function () {
@@ -73,7 +76,9 @@ function loadVideo(id){
             status: 0,
             file: null,
             size: 0,
-            percent: 0
+            percent: 0,
+            thumbnail: null,
+            thumbnail_file: null
         });
         instance = db.get(id);
     }
@@ -85,6 +90,14 @@ function loadVideo(id){
     if(instance.status == 1 && downloading.indexOf(id) == -1){
         downloadVideo(id);
     }
+    if(instance.thumbnail_file == null && instance.thumbnail != null){
+        var thumbnail_filepath = DOWNLOAD_DIR + id + '.jpg';
+        request(instance.thumbnail)
+            .pipe(fs.createWriteStream(thumbnail_filepath))
+            .on('close', function (){
+                updateVideoIntance(id, 'thumbnail_file', thumbnail_filepath);
+            });
+    }
 
     return instance;
 }
@@ -94,12 +107,12 @@ dispatcher
         response.writeHead(200, {'Content-Type': 'text/plain'});
         response.end('Index');
     });
-dispatcher
-    .onError(function(request, response) {
-        var id = request.url.substring(1);
-        response.writeHead(200, {'Content-Type': 'application/json'});
-        response.end(JSON.stringify(loadVideo(id)));
-    });
+// dispatcher
+//     .onError(function(request, response) {
+//         var id = request.url.substring(1);
+//         response.writeHead(200, {'Content-Type': 'application/json'});
+//         response.end(JSON.stringify(loadVideo(id)));
+//     });
 
 function handleRequest(request, response){
     try {
