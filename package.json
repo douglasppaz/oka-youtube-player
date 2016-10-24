@@ -2,7 +2,7 @@
   "name": "oka-youtube-player",
   "version": "0.1.0",
   "description": "OKa Youtube Player",
-  "main": "app.js",
+  "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/douglasppaz/oka-youtube-player/issues"
   },
-  "homepage": "https://github.com/douglasppaz/oka-youtube-player#readme"
+  "homepage": "https://github.com/douglasppaz/oka-youtube-player#readme",
+  "devDependencies": {
+    "electron": "^1.4.4"
+  }
 }
