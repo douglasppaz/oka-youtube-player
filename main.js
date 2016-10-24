@@ -1,5 +1,6 @@
 const {app, BrowserWindow} = require('electron');
 
+var server = require('./server');
 let win;
 
 function createWindow(){
@@ -8,7 +9,7 @@ function createWindow(){
         height: 600
     });
     win.loadURL('file://' + __dirname + '/www/index.html');
-    // win.webContents.openDevTools();
+    win.webContents.openDevTools();
     win.on('closed', function (){
         win = null;
     });
