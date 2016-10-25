@@ -5,7 +5,7 @@ angular
     .module('oka', [
         'oka.NavBarCtrl'
     ])
-    .run(function ($rootScope, $http, $timeout){
+    .run(function ($rootScope, $http, $timeout, $interval){
         $rootScope.close = function (){
             window.close();
         };
@@ -16,25 +16,48 @@ angular
             return $rootScope.karaoke ? 'karoke ' + $rootScope.query : $rootScope.query;
         };
         $rootScope.videos = [];
-        $http.get(OKASERVER_URL)
-            .success(function (data){
-                $rootScope.videos = data;
-            })
-            .error(function (){
-                $rootScope.videos = [];
-            });
+        $rootScope.updateVideos = function () {
+            $http.get(OKASERVER_URL)
+                .success(function (data) {
+                    $rootScope.videos = data;
+                })
+                .error(function () {
+                    $rootScope.videos = [];
+                });
+        };
+        $rootScope.updateVideos();
+        $interval($rootScope.updateVideos, 10 * 1000);
 
         $rootScope.ytsearch = [];
         $rootScope.ytsearch_url = null;
+        $rootScope.ytsearch_nextPageToken = null;
+        $rootScope.ytsearch_loadingnext = false;
         $rootScope.doYtSearch = function (){
             $rootScope.ytsearch_url = 'https://www.googleapis.com/youtube/v3/search?key=' + GOOGLE_CONSOLE_KEY + '&part=snippet&q=' + $rootScope.getQuery()
             $http.get($rootScope.ytsearch_url)
                 .success(function (data){
                     $rootScope.ytsearch = data.items;
+                    $rootScope.ytsearch_nextPageToken = data.nextPageToken;
                 })
                 .error(function (){
                     $rootScope.ytsearch = [];
                 });
+        };
+        $rootScope.ytsearch_loadMore = function (){
+            if($rootScope.ytsearch_nextPageToken && !$rootScope.ytsearch_loadingnext){
+                $rootScope.ytsearch_loadingnext = true;
+                $http.get($rootScope.ytsearch_url + '&pageToken=' + $rootScope.ytsearch_nextPageToken)
+                    .success(function (data){
+                        data.items.forEach(function (item){
+                            $rootScope.ytsearch.push(item);
+                        });
+                        $rootScope.ytsearch_nextPageToken = data.nextPageToken;
+                        $rootScope.ytsearch_loadingnext = false;
+                    })
+                    .error(function (){
+                        $rootScope.ytsearch_loadingnext = false;
+                    });
+            }
         };
 
         var tempSearchText = '',
@@ -52,11 +75,32 @@ angular
                 }, 500);
             } else {
                 $rootScope.ytsearch = [];
+                $rootScope.ytsearch_nextPageToken = null;
+                $rootScope.ytsearch_loadingnext = false;
             }
         }
 
         $rootScope.$watch('karaoke', queryChange);
         $rootScope.$watch('query', queryChange);
+
+        $rootScope.playing_id = null;
+        $rootScope.playing = function (){
+            var playing = false;
+            $rootScope.videos.forEach(function (video){
+                if(video.id == $rootScope.playing_id){
+                    playing = video;
+                    return true;
+                }
+            });
+            if(!playing && $rootScope.playing_id){
+                $http.get(OKASERVER_URL + $rootScope.playing_id)
+                    .success(function (data) {
+                        playing = data;
+                        $rootScope.videos.push(playing);
+                    });
+            }
+            return playing;
+        }
     })
     .filter('statusVerbose', function (){
         return function (input){

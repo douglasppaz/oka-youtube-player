@@ -21,6 +21,23 @@ function updateVideoIntance(id, field, value){
     db.put(id, instance);
 }
 
+function downloadThumbnailById(id){
+    downloadThumbnail(db.get(id));
+}
+
+function downloadThumbnail(instance){
+    if(instance.thumbnail_file == null && instance.thumbnail != null){
+        var thumbnail_filename = instance.id + '.jpg',
+            thumbnail_filepath = DOWNLOAD_DIR + thumbnail_filename;
+        request(instance.thumbnail)
+            .pipe(fs.createWriteStream(thumbnail_filepath))
+            .on('close', function (){
+                updateVideoIntance(instance.id, 'thumbnail_file', thumbnail_filepath);
+                updateVideoIntance(instance.id, 'thumbnail_filename', thumbnail_filename);
+            });
+    }
+}
+
 function downloadVideo(id){
     var video = youtubedl(
             'http://www.youtube.com/watch?v=' + id,
@@ -38,7 +55,7 @@ function downloadVideo(id){
         updateVideoIntance(id, 'title', info.title);
         updateVideoIntance(id, 'size', info.size);
         updateVideoIntance(id, 'thumbnail', info.thumbnail);
-        console.log(info.thumbnail);
+        downloadThumbnailById(id);
     });
     video.on('error', function (err){
         updateVideoIntance(id, 'status', -err.code)
@@ -71,6 +88,7 @@ function loadVideo(id){
     var instance = db.get(id);
     if(instance === undefined){
         db.put(id, {
+            id: id,
             title: null,
             status: 0,
             file: null,
@@ -91,16 +109,7 @@ function loadVideo(id){
     if(instance.status == 1 && downloading.indexOf(id) == -1){
         downloadVideo(id);
     }
-    if(instance.thumbnail_file == null && instance.thumbnail != null){
-        var thumbnail_filename = id + '.jpg',
-            thumbnail_filepath = DOWNLOAD_DIR + thumbnail_filename;
-        request(instance.thumbnail)
-            .pipe(fs.createWriteStream(thumbnail_filepath))
-            .on('close', function (){
-                updateVideoIntance(id, 'thumbnail_file', thumbnail_filepath);
-                updateVideoIntance(id, 'thumbnail_filename', thumbnail_filename);
-            });
-    }
+    downloadThumbnail(instance);
 
     return instance;
 }
@@ -149,5 +158,5 @@ function handleRequest(request, response){
 
 var server = http.createServer(handleRequest);
 server.listen(PORT, function (){
-    console.log("Server listening on: http://localhost:%s", PORT);
+    console.log('Server listening on: http://localhost:%s', PORT);
 });
