@@ -5,11 +5,13 @@ let win;
 
 function createWindow(){
     win = new BrowserWindow({
-        width: 800,
-        height: 600
+        width: 720,
+        height: 480,
+        fullscreen: true
     });
+    win.setMenu(null);
     win.loadURL('file://' + __dirname + '/www/index.html');
-    win.webContents.openDevTools();
+    // win.webContents.openDevTools();
     win.on('closed', function (){
         win = null;
     });

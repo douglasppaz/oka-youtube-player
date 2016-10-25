@@ -13,9 +13,6 @@ var http = require('http'),
 
 db.on('open', function() {
     console.log('database ready!');
-    db.keys().forEach(function (key){
-        console.log(key);
-    });
 });
 
 function updateVideoIntance(id, field, value){
@@ -33,7 +30,8 @@ function downloadVideo(id){
                 maxBuffer: Infinity
             }
         ),
-        filepath = DOWNLOAD_DIR + id + '.mp4',
+        filename = id + '.mp4',
+        filepath = DOWNLOAD_DIR + filename,
         pos = 0;
 
     video.on('info', function (info){
@@ -64,6 +62,7 @@ function downloadVideo(id){
     video.pipe(fs.createWriteStream(filepath));
 
     updateVideoIntance(id, 'file', filepath);
+    updateVideoIntance(id, 'filename', filename);
 
     downloading.push(id);
 }
@@ -75,10 +74,12 @@ function loadVideo(id){
             title: null,
             status: 0,
             file: null,
+            filename: null,
             size: 0,
             percent: 0,
             thumbnail: null,
-            thumbnail_file: null
+            thumbnail_file: null,
+            thumbnail_filename: null
         });
         instance = db.get(id);
     }
@@ -91,11 +92,13 @@ function loadVideo(id){
         downloadVideo(id);
     }
     if(instance.thumbnail_file == null && instance.thumbnail != null){
-        var thumbnail_filepath = DOWNLOAD_DIR + id + '.jpg';
+        var thumbnail_filename = id + '.jpg',
+            thumbnail_filepath = DOWNLOAD_DIR + thumbnail_filename;
         request(instance.thumbnail)
             .pipe(fs.createWriteStream(thumbnail_filepath))
             .on('close', function (){
                 updateVideoIntance(id, 'thumbnail_file', thumbnail_filepath);
+                updateVideoIntance(id, 'thumbnail_filename', thumbnail_filename);
             });
     }
 
@@ -104,19 +107,40 @@ function loadVideo(id){
 
 dispatcher
     .onGet('/', function(request, response) {
-        response.writeHead(200, {'Content-Type': 'text/plain'});
-        response.end('Index');
+        response.writeHead(200, {'Content-Type': 'application/json'});
+        var videos = [];
+        db.keys().forEach(function (key){
+            videos.push(db.get(key));
+        });
+        response.end(JSON.stringify(videos));
     });
-// dispatcher
-//     .onError(function(request, response) {
-//         var id = request.url.substring(1);
-//         response.writeHead(200, {'Content-Type': 'application/json'});
-//         response.end(JSON.stringify(loadVideo(id)));
-//     });
+dispatcher
+    .onError(function(request, response) {
+        if(request.url.indexOf('/get/') == 0){
+            var file = request.url.substr(5);
+            fs.readFile(DOWNLOAD_DIR + file, function(error, content) {
+                if (error) {
+                    response.writeHead(404);
+                    response.end('404');
+                } else {
+                    response.writeHead(200);
+                    response.end(content, 'utf-8');
+                }
+            });
+        } else {
+            var id = request.url.substring(1);
+            response.writeHead(200, {'Content-Type': 'application/json'});
+            response.end(JSON.stringify(loadVideo(id)));
+        }
+    });
 
 function handleRequest(request, response){
     try {
         console.log(request.url);
+        response.setHeader('Access-Control-Allow-Origin', '*');
+        response.setHeader('Access-Control-Allow-Methods', '*');
+        response.setHeader('Access-Control-Allow-Headers', '*');
+        response.setHeader('Access-Control-Allow-Credentials', true);
         dispatcher.dispatch(request, response);
     } catch (err){
         console.error(err);
