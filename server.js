@@ -1,6 +1,6 @@
 const
     PORT = 8080,
-    DOWNLOAD_DIR = __dirname + '/videos/';
+    DOWNLOAD_DIR = __dirname + '/www/source/';
 
 var http = require('http'),
     dispatcher = require('httpdispatcher'),
@@ -125,22 +125,9 @@ dispatcher
     });
 dispatcher
     .onError(function(request, response) {
-        if(request.url.indexOf('/get/') == 0){
-            var file = request.url.substr(5);
-            fs.readFile(DOWNLOAD_DIR + file, function(error, content) {
-                if (error) {
-                    response.writeHead(404);
-                    response.end('404');
-                } else {
-                    response.writeHead(200);
-                    response.end(content, 'utf-8');
-                }
-            });
-        } else {
-            var id = request.url.substring(1);
-            response.writeHead(200, {'Content-Type': 'application/json'});
-            response.end(JSON.stringify(loadVideo(id)));
-        }
+        var id = request.url.substring(1);
+        response.writeHead(200, {'Content-Type': 'application/json'});
+        response.end(JSON.stringify(loadVideo(id)));
     });
 
 function handleRequest(request, response){

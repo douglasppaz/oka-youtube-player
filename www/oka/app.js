@@ -127,6 +127,6 @@ angular
     })
     .filter('staticUrl', function ($sce){
         return function (input){
-            return $sce.trustAsResourceUrl(OKASERVER_URL + 'get/' + input);
+            return $sce.trustAsResourceUrl('source/' + input);
         }
     });
