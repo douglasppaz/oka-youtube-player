@@ -66,7 +66,7 @@ function downloadVideo(id){
             size = instance.size;
         if(size){
             var percent = (pos / size * 100).toFixed(2);
-            if(percent - instance.percent > 10 || percent == 100) {
+            if(percent - instance.percent > 2 || percent == 100) {
                 updateVideoIntance(id, 'percent', parseInt(percent));
                 console.log(id + ': ' + percent + '%');
             }

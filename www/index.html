@@ -49,7 +49,8 @@
         </div>
     </div>
 </div>
-<div class="container">
+<div class="container" ng-show="ytsearch.length > 0">
+    <h3>Busca no YouTube</h3>
     <div class="panel" ng-repeat="video in ytsearch" role="button" ng-click="$root.playing_id = video.id.videoId;">
         <div class="panel-body">
             <div class="row">
@@ -64,7 +65,12 @@
     <p class="text-center" ng-show="ytsearch_nextPageToken && !ytsearch_loadingnext"><button type="button" class="btn btn-lg btn-primary" ng-click="ytsearch_loadMore()">Carregar mais...</button></p>
     <p class="text-center" ng-show="ytsearch_loadingnext"><small>Carregando...</small></p>
 </div>
-<div class="player" ng-show="playing_id">{{ playing }}</div>
+<div class="player" ng-if="playing_id">
+    <div class="loading" ng-if="playing.percent < 100"><div class="loading-progress" ng-style="{width: playing.percent + '%'}">{{ playing.percent }}%</div></div>
+    <div class="video" ng-if="playing.status == 2 && playing.filename">
+        <video controls autoplay><source ng-src="{{ playing.filename|staticUrl }}" type="video/mp4"></video>
+    </div>
+</div>
 
 <script type="text/javascript">
     function jqueryCorrect(){

@@ -9,4 +9,46 @@
   width: 100%;
   height: 100%;
   background-color: #222222;
+  color: #FFFFFF;
+
+  .video {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+
+    video {
+      position: absolute;
+      display: block;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      cursor: none;
+    }
+  }
+
+  .loading {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+
+    @progress-height: 30px;
+    &-progress {
+      position: absolute;
+      display: block;
+      bottom: 0;
+      left: 0;
+      min-width: (@progress-height * 2);
+      width: 0;
+      height: @progress-height;
+      line-height: @progress-height;
+      padding: 0 10px;
+      background-color: #00A000;
+      text-align: right;
+      font-size: (@progress-height * .5);
+      overflow: hidden;
+    }
+  }
 }
