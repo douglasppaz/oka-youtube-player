@@ -3,9 +3,12 @@ const GOOGLE_CONSOLE_KEY = 'AIzaSyARJZO9ibD-I4k138tE5tiFy_JU59tZu8Y';
 
 angular
     .module('oka', [
+        'ngSanitize',
+        'com.2fdevs.videogular',
+        'com.2fdevs.videogular.plugins.controls',
         'oka.NavBarCtrl'
     ])
-    .run(function ($rootScope, $http, $timeout, $interval){
+    .run(function ($rootScope, $http, $timeout, $interval, $sce){
         $rootScope.close = function (){
             window.close();
         };
@@ -114,6 +117,10 @@ angular
                 return false;
             }
         });
+
+        $rootScope.staticUrl = function (input){
+            return $sce.trustAsResourceUrl('source/' + input);
+        }
     })
     .filter('statusVerbose', function (){
         return function (input){
@@ -125,8 +132,8 @@ angular
             }
         }
     })
-    .filter('staticUrl', function ($sce){
+    .filter('staticUrl', function ($rootScope){
         return function (input){
-            return $sce.trustAsResourceUrl('source/' + input);
+            return $rootScope.staticUrl(input);
         }
     });

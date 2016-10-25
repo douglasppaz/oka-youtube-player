@@ -6784,7 +6784,6 @@ button.close {
   display: block;
   width: 100%;
   height: 100%;
-  cursor: none;
 }
 .player .loading {
   position: relative;
@@ -6804,7 +6803,8 @@ button.close {
   overflow: hidden;
   font-size: 15px;
   line-height: 30px;
+  color: #2c3e50;
   text-align: right;
-  background-color: #00a000;
+  background-color: #1abc9c;
 }
 /*# sourceMappingURL=bootstrap.css.map */
