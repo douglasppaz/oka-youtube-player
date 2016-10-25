@@ -1,7 +1,7 @@
 angular
     .module('oka.NavBarCtrl', [])
-    .controller('NavBarCtrl', function ($scope){
+    .controller('NavBarCtrl', function ($rootScope, $scope){
         $scope.forceSearch = function (){
-            console.log($scope.query, $scope.karaoke);
+            $rootScope.doYtSearch();
         }
     });
