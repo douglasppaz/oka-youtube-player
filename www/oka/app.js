@@ -6,6 +6,7 @@ angular
         'ngSanitize',
         'com.2fdevs.videogular',
         'com.2fdevs.videogular.plugins.controls',
+        'com.javiercejudo.videogular.plugins.autohide-cursor',
         'oka.NavBarCtrl'
     ])
     .run(function ($rootScope, $http, $timeout, $interval, $sce){
