@@ -33,7 +33,7 @@ angular
         $rootScope.ytsearch_nextPageToken = null;
         $rootScope.ytsearch_loadingnext = false;
         $rootScope.doYtSearch = function (){
-            $rootScope.ytsearch_url = 'https://www.googleapis.com/youtube/v3/search?key=' + GOOGLE_CONSOLE_KEY + '&part=snippet&q=' + $rootScope.getQuery()
+            $rootScope.ytsearch_url = 'https://www.googleapis.com/youtube/v3/search?key=' + GOOGLE_CONSOLE_KEY + '&part=snippet&type=video&q=' + $rootScope.getQuery()
             $http.get($rootScope.ytsearch_url)
                 .success(function (data){
                     $rootScope.ytsearch = data.items;
