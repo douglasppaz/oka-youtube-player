@@ -84,23 +84,36 @@ angular
         $rootScope.$watch('query', queryChange);
 
         $rootScope.playing_id = null;
-        $rootScope.playing = function (){
-            var playing = false;
+        $rootScope.playing = null;
+        $rootScope.updatePlaying = function (){
+            if($rootScope.playing_id) {
+                $http.get(OKASERVER_URL + $rootScope.playing_id)
+                    .success(function (data) {
+                        $rootScope.playing = data;
+                    });
+            }
+        };
+        $rootScope.$watch('playing_id', function (playing_id){
+            $rootScope.playing = null;
             $rootScope.videos.forEach(function (video){
-                if(video.id == $rootScope.playing_id){
-                    playing = video;
+                if(video.id == playing_id){
+                    $rootScope.playing = video;
                     return true;
                 }
             });
-            if(!playing && $rootScope.playing_id){
-                $http.get(OKASERVER_URL + $rootScope.playing_id)
-                    .success(function (data) {
-                        playing = data;
-                        $rootScope.videos.push(playing);
-                    });
+            if(!$rootScope.playing && $rootScope.playing_id){
+                $rootScope.updatePlaying();
+                $rootScope.videos.push($rootScope.playing);
             }
-            return playing;
-        }
+        });
+        $interval($rootScope.updatePlaying, 1000);
+
+        $(window).keyup(function (e){
+            if(e.keyCode == 27){
+                $rootScope.playing_id = null;
+                return false;
+            }
+        });
     })
     .filter('statusVerbose', function (){
         return function (input){
