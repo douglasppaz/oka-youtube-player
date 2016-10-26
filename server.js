@@ -8,7 +8,7 @@ var http = require('http'),
     youtubedl = require('youtube-dl'),
     flatfile = require('flat-file-db'),
     request = require('request'),
-    db = flatfile(__dirname + 'oka.db'),
+    db = flatfile(__dirname + '/oka.db'),
     downloading = [];
 
 db.on('open', function() {
@@ -114,6 +114,10 @@ function loadVideo(id){
     return instance;
 }
 
+function deleteFile(file){
+    if(fs.existsSync(file)) fs.unlink(file);
+}
+
 dispatcher
     .onGet('/', function(request, response) {
         response.writeHead(200, {'Content-Type': 'application/json'});
@@ -125,6 +129,10 @@ dispatcher
     });
 dispatcher
     .onGet('/clear', function(request, response) {
+        db.keys().forEach(function (key){
+            deleteFile(db.get(key).file);
+            deleteFile(db.get(key).thumbnail_file);
+        });
         db.clear();
         response.end(JSON.stringify(true));
     });
