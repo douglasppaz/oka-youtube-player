@@ -23,6 +23,9 @@
   "homepage": "https://github.com/douglasppaz/oka-youtube-player#readme",
   "devDependencies": {
     "electron": "^1.4.4",
+    "electron-packager": "^8.1.0"
+  },
+  "dependencies": {
     "flat-file-db": "^1.0.0",
     "httpdispatcher": "^1.0.0",
     "request": "^2.75.0",
