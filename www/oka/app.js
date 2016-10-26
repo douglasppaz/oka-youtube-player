@@ -97,11 +97,14 @@ angular
 
         $rootScope.playing_id = null;
         $rootScope.playing = null;
-        $rootScope.updatePlaying = function (){
+        $rootScope.updatePlaying = function (callback){
             if($rootScope.playing_id) {
                 $http.get(OKASERVER_URL + $rootScope.playing_id)
                     .success(function (data) {
                         $rootScope.playing = data;
+                        if(callback !== undefined){
+                            callback();
+                        }
                     });
             }
         };
@@ -114,11 +117,12 @@ angular
                 }
             });
             if(!$rootScope.playing && $rootScope.playing_id){
-                $rootScope.updatePlaying();
-                $rootScope.updateVideos();
+                $rootScope.updatePlaying($rootScope.updateVideos);
             }
         });
-        $interval($rootScope.updatePlaying, 1000);
+        $interval(function () {
+            $rootScope.updatePlaying();
+        }, 1000);
 
         $(window).keyup(function (e){
             if(e.keyCode == 27){
