@@ -11,10 +11,6 @@ var http = require('http'),
     db = flatfile(__dirname + '/oka.db'),
     downloading = [];
 
-db.on('open', function() {
-    console.log('database ready!');
-});
-
 function updateVideoIntance(id, field, value){
     var instance = db.get(id);
     instance[field] = value;
@@ -117,6 +113,10 @@ function loadVideo(id){
 function deleteFile(file){
     if(fs.existsSync(file)) fs.unlink(file);
 }
+
+db.on('open', function() {
+    console.log('database ready!');
+});
 
 dispatcher
     .onGet('/', function(request, response) {

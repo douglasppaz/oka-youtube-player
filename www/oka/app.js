@@ -138,6 +138,8 @@ angular
     .filter('statusVerbose', function (){
         return function (input){
             switch (input){
+                case 1:
+                    return 'Baixando...';
                 case 2:
                     return 'Disponível';
                 default:
