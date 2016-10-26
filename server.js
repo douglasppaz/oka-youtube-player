@@ -41,11 +41,11 @@ function downloadThumbnail(instance){
 function downloadVideo(id){
     var video = youtubedl(
             'http://www.youtube.com/watch?v=' + id,
-            ['--format=18'],
-            {
-                cwd: DOWNLOAD_DIR,
-                maxBuffer: Infinity
-            }
+        ['--format=18'],
+        {
+            cwd: DOWNLOAD_DIR,
+            maxBuffer: Infinity
+        }
         ),
         filename = id + '.mp4',
         filepath = DOWNLOAD_DIR + filename,
@@ -122,6 +122,16 @@ dispatcher
             videos.push(db.get(key));
         });
         response.end(JSON.stringify(videos));
+    });
+dispatcher
+    .onGet('/clear', function(request, response) {
+        db.clear();
+        response.end(JSON.stringify(true));
+    });
+dispatcher
+    .onGet('/favicon.ico', function(request, response) {
+        response.writeHead(404);
+        response.end('404');
     });
 dispatcher
     .onError(function(request, response) {

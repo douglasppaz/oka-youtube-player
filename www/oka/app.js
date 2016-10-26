@@ -10,8 +10,16 @@ angular
         'oka.NavBarCtrl'
     ])
     .run(function ($rootScope, $http, $timeout, $interval, $sce){
-        $rootScope.close = function (){
-            window.close();
+        $rootScope.clear = function (){
+            if(confirm('Você tem certeza que deseja apagar todas as informações?')){
+                $http.get(OKASERVER_URL + 'clear')
+                    .success(function (){
+                        location.reload();
+                    })
+                    .error(function (){
+                        alert('Algo não esperado aconteceu :(');
+                    });
+            }
         };
 
         $rootScope.karaoke = false;
@@ -30,7 +38,7 @@ angular
                 });
         };
         $rootScope.updateVideos();
-        $interval($rootScope.updateVideos, 10 * 1000);
+        $interval($rootScope.updateVideos, 30 * 1000);
 
         $rootScope.ytsearch = [];
         $rootScope.ytsearch_url = null;
@@ -107,7 +115,7 @@ angular
             });
             if(!$rootScope.playing && $rootScope.playing_id){
                 $rootScope.updatePlaying();
-                $rootScope.videos.push($rootScope.playing);
+                $rootScope.updateVideos();
             }
         });
         $interval($rootScope.updatePlaying, 1000);
