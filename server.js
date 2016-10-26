@@ -8,7 +8,7 @@ var http = require('http'),
     youtubedl = require('youtube-dl'),
     flatfile = require('flat-file-db'),
     request = require('request'),
-    db = flatfile('./oka.db'),
+    db = flatfile(__dirname + 'oka.db'),
     downloading = [];
 
 db.on('open', function() {
