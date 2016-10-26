@@ -10,8 +10,16 @@ angular
         'oka.NavBarCtrl'
     ])
     .run(function ($rootScope, $http, $timeout, $interval, $sce){
-        $rootScope.close = function (){
-            window.close();
+        $rootScope.clear = function (){
+            if(confirm('Você tem certeza que deseja apagar todas as informações?')){
+                $http.get(OKASERVER_URL + 'clear')
+                    .success(function (){
+                        location.reload();
+                    })
+                    .error(function (){
+                        alert('Algo não esperado aconteceu :(');
+                    });
+            }
         };
 
         $rootScope.karaoke = false;
@@ -30,7 +38,7 @@ angular
                 });
         };
         $rootScope.updateVideos();
-        $interval($rootScope.updateVideos, 10 * 1000);
+        $interval($rootScope.updateVideos, 30 * 1000);
 
         $rootScope.ytsearch = [];
         $rootScope.ytsearch_url = null;
@@ -89,11 +97,14 @@ angular
 
         $rootScope.playing_id = null;
         $rootScope.playing = null;
-        $rootScope.updatePlaying = function (){
+        $rootScope.updatePlaying = function (callback){
             if($rootScope.playing_id) {
                 $http.get(OKASERVER_URL + $rootScope.playing_id)
                     .success(function (data) {
                         $rootScope.playing = data;
+                        if(callback !== undefined){
+                            callback();
+                        }
                     });
             }
         };
@@ -106,11 +117,12 @@ angular
                 }
             });
             if(!$rootScope.playing && $rootScope.playing_id){
-                $rootScope.updatePlaying();
-                $rootScope.videos.push($rootScope.playing);
+                $rootScope.updatePlaying($rootScope.updateVideos);
             }
         });
-        $interval($rootScope.updatePlaying, 1000);
+        $interval(function () {
+            $rootScope.updatePlaying();
+        }, 1000);
 
         $(window).keyup(function (e){
             if(e.keyCode == 27){
@@ -126,6 +138,8 @@ angular
     .filter('statusVerbose', function (){
         return function (input){
             switch (input){
+                case 1:
+                    return 'Baixando...';
                 case 2:
                     return 'Disponível';
                 default:

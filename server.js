@@ -8,12 +8,8 @@ var http = require('http'),
     youtubedl = require('youtube-dl'),
     flatfile = require('flat-file-db'),
     request = require('request'),
-    db = flatfile(__dirname + 'oka.db'),
+    db = flatfile(__dirname + '/oka.db'),
     downloading = [];
-
-db.on('open', function() {
-    console.log('database ready!');
-});
 
 function updateVideoIntance(id, field, value){
     var instance = db.get(id);
@@ -41,11 +37,11 @@ function downloadThumbnail(instance){
 function downloadVideo(id){
     var video = youtubedl(
             'http://www.youtube.com/watch?v=' + id,
-            ['--format=18'],
-            {
-                cwd: DOWNLOAD_DIR,
-                maxBuffer: Infinity
-            }
+        ['--format=18'],
+        {
+            cwd: DOWNLOAD_DIR,
+            maxBuffer: Infinity
+        }
         ),
         filename = id + '.mp4',
         filepath = DOWNLOAD_DIR + filename,
@@ -114,6 +110,14 @@ function loadVideo(id){
     return instance;
 }
 
+function deleteFile(file){
+    if(fs.existsSync(file)) fs.unlink(file);
+}
+
+db.on('open', function() {
+    console.log('database ready!');
+});
+
 dispatcher
     .onGet('/', function(request, response) {
         response.writeHead(200, {'Content-Type': 'application/json'});
@@ -122,6 +126,20 @@ dispatcher
             videos.push(db.get(key));
         });
         response.end(JSON.stringify(videos));
+    });
+dispatcher
+    .onGet('/clear', function(request, response) {
+        db.keys().forEach(function (key){
+            deleteFile(db.get(key).file);
+            deleteFile(db.get(key).thumbnail_file);
+        });
+        db.clear();
+        response.end(JSON.stringify(true));
+    });
+dispatcher
+    .onGet('/favicon.ico', function(request, response) {
+        response.writeHead(404);
+        response.end('404');
     });
 dispatcher
     .onError(function(request, response) {

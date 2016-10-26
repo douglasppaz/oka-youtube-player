@@ -22,7 +22,7 @@
         </div>
         <div id="navbar" class="collapse navbar-collapse">
             <ul class="nav navbar-nav navbar-right">
-                <li><a role="button" ng-click="close()"><span class="glyphicon glyphicon-remove"></span></a></li>
+                <li><a role="button" onclick="return false;" data-toggle="modal" data-target="#config"><span class="glyphicon glyphicon-cog"></span></a></li>
             </ul>
             <form class="navbar-form navbar-left" ng-submit="forceSearch()">
                 <div class="input-group">
@@ -83,8 +83,23 @@
                     <vg-mute-button></vg-mute-button>
                     <vg-volume-bar></vg-volume-bar>
                 </vg-volume>
+                <vg-fullscreen-button></vg-fullscreen-button>
             </vg-controls>
         </videogular>
+    </div>
+</div>
+
+<div class="modal fade" id="config">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                <h5 class="modal-title">Configurações</h5>
+            </div>
+            <ul class="nav nav-pills nav-stacked">
+                <li><a role="button" onclick="return false;" ng-click="clear()">Apagar todas as informações</a></li>
+            </ul>
+        </div>
     </div>
 </div>
 
