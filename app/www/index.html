@@ -40,7 +40,7 @@
         <div class="panel-body">
             <div class="row">
                 <div class="col-xs-4">
-                    <img ng-if="video.thumbnail_filename" ng-src="{{ video.thumbnail_filename|staticUrl }}" class="img-rounded img-responsive">
+                    <img ng-if="video.thumbnail_filename" ng-src="{{ video.thumbnail_filename|sourceUrl }}" class="img-rounded img-responsive">
                     <img ng-if="!video.thumbnail_filename" src="imgs/no-thumbnail.png" class="img-rounded img-responsive">
                 </div>
                 <div class="col-xs-8">
@@ -71,7 +71,7 @@
     <div class="loading" ng-if="playing.percent < 100"><div class="loading-progress" ng-style="{width: playing.percent + '%'}">{{ playing.percent }}%</div></div>
     <div class="video" ng-if="playing.status == 2 && playing.filename">
         <videogular vg-auto-play="true" vg-player-ready="$API.toggleFullScreen();" vg-complete="$root.playing_id = null;" vg-autohide-cursor="true">
-            <vg-media vg-src="[{src: staticUrl(playing.filename), type: 'video/mp4'}]"></vg-media>
+            <vg-media vg-src="[{src: sourceUrl(playing.filename), type: 'video/mp4'}]"></vg-media>
 
             <vg-controls vg-autohide="true">
                 <vg-play-pause-button></vg-play-pause-button>
