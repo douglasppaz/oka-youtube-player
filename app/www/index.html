@@ -5,8 +5,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>OKa Youtube Player</title>
 
-    <link href="components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="components/videogular-themes-default/videogular.min.css" rel="stylesheet">
+    <link href="components/bootstrap.min.css" rel="stylesheet">
+    <link href="components/videogular.min.css" rel="stylesheet">
 </head>
 <body class="with-navbar-top" ng-app="oka" ng-class="{'no-scroll':playing_id}">
 <nav class="navbar navbar-default navbar-fixed-top" ng-controller="NavBarCtrl">
@@ -40,7 +40,7 @@
         <div class="panel-body">
             <div class="row">
                 <div class="col-xs-4">
-                    <img ng-if="video.thumbnail_filename" ng-src="{{ video.thumbnail_filename|staticUrl }}" class="img-rounded img-responsive">
+                    <img ng-if="video.thumbnail_filename" ng-src="{{ video.thumbnail_filename|sourceUrl }}" class="img-rounded img-responsive">
                     <img ng-if="!video.thumbnail_filename" src="imgs/no-thumbnail.png" class="img-rounded img-responsive">
                 </div>
                 <div class="col-xs-8">
@@ -58,7 +58,8 @@
                 <div class="col-xs-4"><img ng-src="{{ video.snippet.thumbnails.medium.url }}" class="img-rounded img-responsive"></div>
                 <div class="col-xs-8">
                     <h4>{{ video.snippet.title }}</h4>
-                    <p>{{ video.id.videoId }}</p>
+                    <p><strong>Canal:</strong> {{ video.snippet.channelTitle }}</p>
+                    <p><strong>ID:</strong> {{ video.id.videoId }}</p>
                 </div>
             </div>
         </div>
@@ -70,7 +71,7 @@
     <div class="loading" ng-if="playing.percent < 100"><div class="loading-progress" ng-style="{width: playing.percent + '%'}">{{ playing.percent }}%</div></div>
     <div class="video" ng-if="playing.status == 2 && playing.filename">
         <videogular vg-auto-play="true" vg-player-ready="$API.toggleFullScreen();" vg-complete="$root.playing_id = null;" vg-autohide-cursor="true">
-            <vg-media vg-src="[{src: staticUrl(playing.filename), type: 'video/mp4'}]"></vg-media>
+            <vg-media vg-src="[{src: sourceUrl(playing.filename), type: 'video/mp4'}]"></vg-media>
 
             <vg-controls vg-autohide="true">
                 <vg-play-pause-button></vg-play-pause-button>
@@ -111,14 +112,14 @@
     }
 </script>
 
-<script src="components/jquery/dist/jquery.min.js" type="text/javascript" onload="jqueryCorrect()"></script>
-<script src="components/bootstrap/dist/js/bootstrap.min.js" type="text/javascript"></script>
-<script src="components/angular/angular.min.js" type="text/javascript"></script>
-<script src="components/angular-sanitize/angular-sanitize.min.js" type="text/javascript"></script>
-<script src="components/videogular/videogular.min.js" type="text/javascript"></script>
-<script src="components/videogular-controls/vg-controls.min.js" type="text/javascript"></script>
-<script src="components/ng-debounce/angular-debounce.js" type="text/javascript"></script>
-<script src="components/videogular-autohide-cursor/hide-cursor.js" type="text/javascript"></script>
+<script src="components/jquery.min.js" type="text/javascript" onload="jqueryCorrect()"></script>
+<script src="components/bootstrap.min.js" type="text/javascript"></script>
+<script src="components/angular.min.js" type="text/javascript"></script>
+<script src="components/angular-sanitize.min.js" type="text/javascript"></script>
+<script src="components/videogular.min.js" type="text/javascript"></script>
+<script src="components/vg-controls.min.js" type="text/javascript"></script>
+<script src="components/angular-debounce.js" type="text/javascript"></script>
+<script src="components/hide-cursor.js" type="text/javascript"></script>
 
 <script src="oka/NavBarCtrl.js" type="text/javascript"></script>
 <script src="oka/app.js" type="text/javascript"></script>

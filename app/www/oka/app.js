@@ -131,7 +131,7 @@ angular
             }
         });
 
-        $rootScope.staticUrl = function (input){
+        $rootScope.sourceUrl = function (input){
             return $sce.trustAsResourceUrl('source/' + input);
         }
     })
@@ -147,8 +147,8 @@ angular
             }
         }
     })
-    .filter('staticUrl', function ($rootScope){
+    .filter('sourceUrl', function ($rootScope){
         return function (input){
-            return $rootScope.staticUrl(input);
+            return $rootScope.sourceUrl(input);
         }
     });

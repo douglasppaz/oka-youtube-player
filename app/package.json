@@ -1,7 +1,8 @@
 {
-  "name": "oka-youtube-player-dev-manager",
-  "version": "0.1.0",
-  "description": "OKa Youtube Player Dev Manager",
+  "name": "oka-youtube-player",
+  "version": "0.3.0",
+  "description": "OKa Youtube Player",
+  "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -12,9 +13,7 @@
   "keywords": [
     "oka",
     "youtube",
-    "player",
-    "dev",
-    "manager"
+    "player"
   ],
   "author": "Douglas Paz",
   "license": "MIT",
@@ -22,9 +21,10 @@
     "url": "https://github.com/douglasppaz/oka-youtube-player/issues"
   },
   "homepage": "https://github.com/douglasppaz/oka-youtube-player#readme",
-  "devDependencies": {
-    "electron": "^1.4.4",
-    "electron-packager": "^8.1.0",
-    "gulp": "^3.9.1"
+  "dependencies": {
+    "flat-file-db": "^1.0.0",
+    "httpdispatcher": "^1.0.0",
+    "request": "^2.75.0",
+    "youtube-dl": "^1.11.1"
   }
 }
