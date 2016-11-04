@@ -154,7 +154,6 @@ function handleRequest(request, response){
         response.setHeader('Access-Control-Allow-Origin', '*');
         response.setHeader('Access-Control-Allow-Methods', '*');
         response.setHeader('Access-Control-Allow-Headers', '*');
-        response.setHeader('Access-Control-Allow-Credentials', true);
         dispatcher.dispatch(request, response);
     } catch (err){
         console.error(err);
