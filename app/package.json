@@ -1,6 +1,6 @@
 {
   "name": "oka-youtube-player",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "OKa Youtube Player",
   "main": "main.js",
   "scripts": {
@@ -21,10 +21,13 @@
     "url": "https://github.com/douglasppaz/oka-youtube-player/issues"
   },
   "homepage": "https://github.com/douglasppaz/oka-youtube-player#readme",
+  "readme": "https://github.com/douglasppaz/oka-youtube-player#readme",
   "dependencies": {
+    "connect": "^3.5.0",
     "flat-file-db": "^1.0.0",
     "httpdispatcher": "^1.0.0",
     "request": "^2.75.0",
+    "serve-static": "^1.11.1",
     "youtube-dl": "^1.11.1"
   }
 }

@@ -132,7 +132,7 @@ angular
         });
 
         $rootScope.sourceUrl = function (input){
-            return $sce.trustAsResourceUrl('source/' + input);
+            return $sce.trustAsResourceUrl('http://localhost:8081/' + input);
         }
     })
     .filter('statusVerbose', function (){

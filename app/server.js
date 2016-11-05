@@ -1,6 +1,7 @@
 const
+    VERSION = '0.3.1',
     PORT = 8080,
-    DOWNLOAD_DIR = __dirname + '/www/source/';
+    SOURCE_PORT = 8081;
 
 var http = require('http'),
     dispatcher = require('httpdispatcher'),
@@ -8,8 +9,21 @@ var http = require('http'),
     youtubedl = require('youtube-dl'),
     flatfile = require('flat-file-db'),
     request = require('request'),
-    db = flatfile(__dirname + '/oka.db'),
+    connect = require('connect'),
+    serveStatic = require('serve-static'),
+    config = flatfile(__dirname + '/oka.config.db'),
+    db,
+    sourcePath,
     downloading = [];
+
+
+// utils
+function deleteFile(file){
+    if(fs.existsSync(file)) fs.unlink(file);
+}
+
+
+// main
 
 function updateVideoIntance(id, field, value){
     var instance = db.get(id);
@@ -24,7 +38,7 @@ function downloadThumbnailById(id){
 function downloadThumbnail(instance){
     if(instance.thumbnail_file == null && instance.thumbnail != null){
         var thumbnail_filename = instance.id + '.jpg',
-            thumbnail_filepath = DOWNLOAD_DIR + thumbnail_filename;
+            thumbnail_filepath = sourcePath + thumbnail_filename;
         request(instance.thumbnail)
             .pipe(fs.createWriteStream(thumbnail_filepath))
             .on('close', function (){
@@ -37,14 +51,14 @@ function downloadThumbnail(instance){
 function downloadVideo(id){
     var video = youtubedl(
             'http://www.youtube.com/watch?v=' + id,
-        ['--format=18'],
-        {
-            cwd: DOWNLOAD_DIR,
-            maxBuffer: Infinity
-        }
+            ['--format=18'],
+            {
+                cwd: sourcePath,
+                maxBuffer: Infinity
+            }
         ),
         filename = id + '.mp4',
-        filepath = DOWNLOAD_DIR + filename,
+        filepath = sourcePath + filename,
         pos = 0;
 
     video.on('info', function (info){
@@ -110,13 +124,13 @@ function loadVideo(id){
     return instance;
 }
 
-function deleteFile(file){
-    if(fs.existsSync(file)) fs.unlink(file);
-}
 
-db.on('open', function() {
-    console.log('database ready!');
-});
+// http server
+
+function r404(request, response) {
+    response.writeHead(404);
+    response.end('404');
+}
 
 dispatcher
     .onGet('/', function(request, response) {
@@ -136,11 +150,7 @@ dispatcher
         db.clear();
         response.end(JSON.stringify(true));
     });
-dispatcher
-    .onGet('/favicon.ico', function(request, response) {
-        response.writeHead(404);
-        response.end('404');
-    });
+dispatcher.onGet('/favicon.ico', r404);
 dispatcher
     .onError(function(request, response) {
         var id = request.url.substring(1);
@@ -159,6 +169,39 @@ function handleRequest(request, response){
         console.error(err);
     }
 }
+
+
+// config
+
+function defaultConfig(index, val){
+    if(config.get(index) === undefined) { config.put(index, val); }
+    return config.get(index);
+}
+
+function loadConfigs(){
+    defaultConfig('dbVersion', VERSION);
+    console.log('db version: ' + config.get('dbVersion'));
+
+    if(config.get('dbVersion') != VERSION){
+        console.log('db migrate...');
+    }
+
+    sourcePath = defaultConfig('sourcePath', process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'] + '/oka/');
+    console.log('source path: ' + sourcePath);
+
+    db = flatfile(sourcePath + 'oka.db');
+    db.on('open', function() { console.log('database ready!'); });
+
+    connect().use(serveStatic(sourcePath)).listen(SOURCE_PORT);
+}
+
+config.on('open', function() {
+    console.log('config loaded!');
+    loadConfigs();
+});
+
+
+// start http server
 
 var server = http.createServer(handleRequest);
 server.listen(PORT, function (){
