@@ -1,4 +1,5 @@
 const OKASERVER_URL = 'http://localhost:8080/';
+const OKASERVER_SOURCE_URL = 'http://localhost:8081/';
 const GOOGLE_CONSOLE_KEY = 'AIzaSyARJZO9ibD-I4k138tE5tiFy_JU59tZu8Y';
 
 angular
@@ -7,21 +8,10 @@ angular
         'com.2fdevs.videogular',
         'com.2fdevs.videogular.plugins.controls',
         'com.javiercejudo.videogular.plugins.autohide-cursor',
-        'oka.NavBarCtrl'
+        'oka.NavBarCtrl',
+        'oka.ConfigCtrl'
     ])
     .run(function ($rootScope, $http, $timeout, $interval, $sce){
-        $rootScope.clear = function (){
-            if(confirm('Você tem certeza que deseja apagar todas as informações?')){
-                $http.get(OKASERVER_URL + 'clear')
-                    .success(function (){
-                        location.reload();
-                    })
-                    .error(function (){
-                        alert('Algo não esperado aconteceu :(');
-                    });
-            }
-        };
-
         $rootScope.karaoke = false;
         $rootScope.query = '';
         $rootScope.getQuery = function (){
@@ -45,7 +35,7 @@ angular
         $rootScope.ytsearch_nextPageToken = null;
         $rootScope.ytsearch_loadingnext = false;
         $rootScope.doYtSearch = function (){
-            $rootScope.ytsearch_url = 'https://www.googleapis.com/youtube/v3/search?key=' + GOOGLE_CONSOLE_KEY + '&part=snippet&type=video&q=' + $rootScope.getQuery()
+            $rootScope.ytsearch_url = 'https://www.googleapis.com/youtube/v3/search?key=' + GOOGLE_CONSOLE_KEY + '&part=snippet&type=video&q=' + $rootScope.getQuery();
             $http.get($rootScope.ytsearch_url)
                 .success(function (data){
                     $rootScope.ytsearch = data.items;
@@ -132,7 +122,7 @@ angular
         });
 
         $rootScope.sourceUrl = function (input){
-            return $sce.trustAsResourceUrl('http://localhost:8081/' + input);
+            return $sce.trustAsResourceUrl(OKASERVER_SOURCE_URL + input);
         }
     })
     .filter('statusVerbose', function (){

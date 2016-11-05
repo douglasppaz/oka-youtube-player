@@ -1,7 +1,15 @@
 const
     VERSION = '0.3.1',
     PORT = 8080,
-    SOURCE_PORT = 8081;
+    SOURCE_PORT = 8081,
+    FORMAT_BEST = 'bestvideo[ext=mp4]+bestaudio[ext=mp3]/best[ext=mp4]/best',
+    FORMAT_LIST = {
+        best: FORMAT_BEST,
+        720: 'best[height=720]/best[height=480]/best[height=360]/best[height=240]/' + FORMAT_BEST,
+        480: 'best[height=480]/best[height=360]/best[height=240]/' + FORMAT_BEST,
+        360: 'best[height=360]/best[height=240]/' + FORMAT_BEST,
+        240: 'best[height=240]/' + FORMAT_BEST
+    };
 
 var http = require('http'),
     dispatcher = require('httpdispatcher'),
@@ -14,6 +22,8 @@ var http = require('http'),
     config = flatfile(__dirname + '/oka.config.db'),
     db,
     sourcePath,
+    format,
+    static_server,
     downloading = [];
 
 
@@ -51,7 +61,7 @@ function downloadThumbnail(instance){
 function downloadVideo(id){
     var video = youtubedl(
             'http://www.youtube.com/watch?v=' + id,
-            ['--format=18'],
+            ['--format='+FORMAT_LIST[format]],
             {
                 cwd: sourcePath,
                 maxBuffer: Infinity
@@ -148,6 +158,20 @@ dispatcher
             deleteFile(db.get(key).thumbnail_file);
         });
         db.clear();
+        config.clear();
+        loadConfigs();
+        response.end(JSON.stringify(true));
+    });
+dispatcher
+    .onGet('/config', function(request, response) {
+        response.end(JSON.stringify({
+            format: format,
+            sourcePath: sourcePath
+        }));
+    });
+dispatcher
+    .onPost('/config', function(request, response) {
+        console.log(request);
         response.end(JSON.stringify(true));
     });
 dispatcher.onGet('/favicon.ico', r404);
@@ -160,9 +184,9 @@ dispatcher
 
 function handleRequest(request, response){
     try {
-        console.log(request.url);
+        console.log(request.method, request.url);
         response.setHeader('Access-Control-Allow-Origin', '*');
-        response.setHeader('Access-Control-Allow-Methods', '*');
+        response.setHeader('Access-Control-Allow-Methods', 'POST, GET');
         response.setHeader('Access-Control-Allow-Headers', '*');
         dispatcher.dispatch(request, response);
     } catch (err){
@@ -192,7 +216,13 @@ function loadConfigs(){
     db = flatfile(sourcePath + 'oka.db');
     db.on('open', function() { console.log('database ready!'); });
 
-    connect().use(serveStatic(sourcePath)).listen(SOURCE_PORT);
+    if(static_server){
+        static_server.close();
+    }
+
+    static_server = connect().use(serveStatic(sourcePath)).listen(SOURCE_PORT);
+
+    format = defaultConfig('format', 'best');
 }
 
 config.on('open', function() {
