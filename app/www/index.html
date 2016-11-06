@@ -90,12 +90,21 @@
     </div>
 </div>
 
-<div class="modal fade" id="config">
+<div class="modal fade" id="config" ng-controller="ConfigCtrl">
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
                 <h5 class="modal-title">Configurações</h5>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="format">Baixar com qualidade</label>
+                    <select id="format" class="form-control" ng-model="config.format">
+                        <option value="best">Melhor</option>
+                        <option value="worst">Pior</option>
+                    </select>
+                </div>
             </div>
             <ul class="nav nav-pills nav-stacked">
                 <li><a role="button" onclick="return false;" ng-click="clear()">Apagar todas as informações</a></li>
@@ -122,6 +131,7 @@
 <script src="components/hide-cursor.js" type="text/javascript"></script>
 
 <script src="oka/NavBarCtrl.js" type="text/javascript"></script>
+<script src="oka/ConfigCtrl.js" type="text/javascript"></script>
 <script src="oka/app.js" type="text/javascript"></script>
 </body>
 </html>
