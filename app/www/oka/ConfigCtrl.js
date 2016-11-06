@@ -3,14 +3,14 @@ angular
     .controller('ConfigCtrl', function ($scope, $http){
         $scope.config = {};
 
-        $http.get(OKASERVER_URL + 'config')
+        $http.get(OKASERVER_URL_API + 'config/')
             .success(function (data){
                 $scope.config = data;
             });
 
         $scope.$watch('config', function (val, oldVal){
             if(Object.keys(oldVal).length > 0){
-                $http.post(OKASERVER_URL + 'config', val)
+                $http.post(OKASERVER_URL_API + 'config/', val)
                     .success(function (data){
                         console.log(data);
                     });
@@ -19,7 +19,7 @@ angular
 
         $scope.clear = function (){
             if(confirm('Você tem certeza que deseja apagar todas as informações?')){
-                $http.get(OKASERVER_URL + 'clear')
+                $http.get(OKASERVER_URL_API + 'clear/')
                     .success(function (){
                         location.reload();
                     })

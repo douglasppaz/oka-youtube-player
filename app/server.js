@@ -1,7 +1,6 @@
 const
     VERSION = '0.3.1',
     PORT = 8080,
-    SOURCE_PORT = 8081,
     FORMAT_BEST = 'bestvideo[ext=mp4]+bestaudio[ext=mp3]/best[ext=mp4]/best',
     FORMAT_LIST = {
         best: FORMAT_BEST,
@@ -11,25 +10,31 @@ const
         240: 'best[height=240]/' + FORMAT_BEST
     };
 
-var http = require('http'),
-    dispatcher = require('httpdispatcher'),
-    fs = require('fs'),
+var fs = require('fs'),
     youtubedl = require('youtube-dl'),
     flatfile = require('flat-file-db'),
     request = require('request'),
     connect = require('connect'),
+    dispatch = require('dispatch'),
     serveStatic = require('serve-static'),
     config = flatfile(__dirname + '/oka.config.db'),
     db,
     sourcePath,
     format,
-    static_server,
-    downloading = [];
+    downloading = [],
+    s,
+    serving;
 
 
 // utils
+
 function deleteFile(file){
     if(fs.existsSync(file)) fs.unlink(file);
+}
+
+function jsonResponse(res, obj){
+    res.writeHead(200, {'Content-Type': 'application/json'});
+    res.end(JSON.stringify(obj));
 }
 
 
@@ -61,11 +66,11 @@ function downloadThumbnail(instance){
 function downloadVideo(id){
     var video = youtubedl(
             'http://www.youtube.com/watch?v=' + id,
-            ['--format='+FORMAT_LIST[format]],
-            {
-                cwd: sourcePath,
-                maxBuffer: Infinity
-            }
+        ['--format='+FORMAT_LIST[format]],
+        {
+            cwd: sourcePath,
+            maxBuffer: Infinity
+        }
         ),
         filename = id + '.mp4',
         filepath = sourcePath + filename,
@@ -135,65 +140,57 @@ function loadVideo(id){
 }
 
 
-// http server
+// start or update http server
 
-function r404(request, response) {
-    response.writeHead(404);
-    response.end('404');
+function updateServer(){
+    if(serving){ serving.close(); }
+
+    s = connect();
+
+    // API middleware
+    s.use('/api/', function (req, res, next){
+        console.log(req.method, req.url);
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'POST, GET');
+        res.setHeader('Access-Control-Allow-Headers', '*');
+        next();
+    });
+
+    s.use('/api/', dispatch({
+        '/': function (req, res, next){
+            var videos = [];
+            db.keys().forEach(function (key){
+                videos.push(db.get(key));
+            });
+            jsonResponse(res, videos);
+        },
+        '/config/': function (req, res, next){
+            jsonResponse(res, {
+                format: format,
+                sourcePath: sourcePath
+            })
+        },
+        '/clear/': function (req, res, next){
+            db.keys().forEach(function (key){
+                deleteFile(db.get(key).file);
+                deleteFile(db.get(key).thumbnail_file);
+            });
+            db.clear();
+            config.clear();
+            loadConfigs();
+            jsonResponse(res, true);
+        },
+        '/video/:id': function (req, res, next, id){
+            res.writeHead(200, {'Content-Type': 'application/json'});
+            res.end(JSON.stringify(loadVideo(id)));
+        }
+    }));
+
+    // SOURCE
+    s.use('/source', serveStatic(sourcePath));
+
+    serving = s.listen(PORT);
 }
-
-dispatcher
-    .onGet('/', function(request, response) {
-        response.writeHead(200, {'Content-Type': 'application/json'});
-        var videos = [];
-        db.keys().forEach(function (key){
-            videos.push(db.get(key));
-        });
-        response.end(JSON.stringify(videos));
-    });
-dispatcher
-    .onGet('/clear', function(request, response) {
-        db.keys().forEach(function (key){
-            deleteFile(db.get(key).file);
-            deleteFile(db.get(key).thumbnail_file);
-        });
-        db.clear();
-        config.clear();
-        loadConfigs();
-        response.end(JSON.stringify(true));
-    });
-dispatcher
-    .onGet('/config', function(request, response) {
-        response.end(JSON.stringify({
-            format: format,
-            sourcePath: sourcePath
-        }));
-    });
-dispatcher
-    .onPost('/config', function(request, response) {
-        console.log(request);
-        response.end(JSON.stringify(true));
-    });
-dispatcher.onGet('/favicon.ico', r404);
-dispatcher
-    .onError(function(request, response) {
-        var id = request.url.substring(1);
-        response.writeHead(200, {'Content-Type': 'application/json'});
-        response.end(JSON.stringify(loadVideo(id)));
-    });
-
-function handleRequest(request, response){
-    try {
-        console.log(request.method, request.url);
-        response.setHeader('Access-Control-Allow-Origin', '*');
-        response.setHeader('Access-Control-Allow-Methods', 'POST, GET');
-        response.setHeader('Access-Control-Allow-Headers', '*');
-        dispatcher.dispatch(request, response);
-    } catch (err){
-        console.error(err);
-    }
-}
-
 
 // config
 
@@ -216,24 +213,12 @@ function loadConfigs(){
     db = flatfile(sourcePath + 'oka.db');
     db.on('open', function() { console.log('database ready!'); });
 
-    if(static_server){
-        static_server.close();
-    }
-
-    static_server = connect().use(serveStatic(sourcePath)).listen(SOURCE_PORT);
-
     format = defaultConfig('format', 'best');
+
+    updateServer();
 }
 
 config.on('open', function() {
     console.log('config loaded!');
     loadConfigs();
-});
-
-
-// start http server
-
-var server = http.createServer(handleRequest);
-server.listen(PORT, function (){
-    console.log('Server listening on: http://localhost:%s', PORT);
 });

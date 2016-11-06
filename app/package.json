@@ -24,8 +24,8 @@
   "readme": "https://github.com/douglasppaz/oka-youtube-player#readme",
   "dependencies": {
     "connect": "^3.5.0",
+    "dispatch": "^1.0.1",
     "flat-file-db": "^1.0.0",
-    "httpdispatcher": "^1.0.0",
     "request": "^2.75.0",
     "serve-static": "^1.11.1",
     "youtube-dl": "^1.11.1"
