@@ -10,7 +10,14 @@ angular
 
         $scope.$watch('config', function (val, oldVal){
             if(Object.keys(oldVal).length > 0){
-                $http.post(OKASERVER_URL_API + 'config/', val)
+                $http({
+                    url: OKASERVER_URL_API + 'config/',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    method: 'post',
+                    data: $.param(val)
+                })
                     .success(function (data){
                         console.log(data);
                     });

@@ -23,6 +23,7 @@
   "homepage": "https://github.com/douglasppaz/oka-youtube-player#readme",
   "readme": "https://github.com/douglasppaz/oka-youtube-player#readme",
   "dependencies": {
+    "body-parser": "^1.15.2",
     "connect": "^3.5.0",
     "dispatch": "^1.0.1",
     "flat-file-db": "^1.0.0",

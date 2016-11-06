@@ -1,13 +1,9 @@
 const
     VERSION = '0.3.1',
     PORT = 8080,
-    FORMAT_BEST = 'bestvideo[ext=mp4]+bestaudio[ext=mp3]/best[ext=mp4]/best',
     FORMAT_LIST = {
-        best: FORMAT_BEST,
-        720: 'best[height=720]/best[height=480]/best[height=360]/best[height=240]/' + FORMAT_BEST,
-        480: 'best[height=480]/best[height=360]/best[height=240]/' + FORMAT_BEST,
-        360: 'best[height=360]/best[height=240]/' + FORMAT_BEST,
-        240: 'best[height=240]/' + FORMAT_BEST
+        best: 'best[vcodec=avc1.64001F]/best',
+        worst: 'worst[vcodec=avc1.64001F]/worst'
     };
 
 var fs = require('fs'),
@@ -17,10 +13,9 @@ var fs = require('fs'),
     connect = require('connect'),
     dispatch = require('dispatch'),
     serveStatic = require('serve-static'),
+    bodyParser = require('body-parser'),
     config = flatfile(__dirname + '/oka.config.db'),
     db,
-    sourcePath,
-    format,
     downloading = [],
     s,
     serving;
@@ -53,7 +48,7 @@ function downloadThumbnailById(id){
 function downloadThumbnail(instance){
     if(instance.thumbnail_file == null && instance.thumbnail != null){
         var thumbnail_filename = instance.id + '.jpg',
-            thumbnail_filepath = sourcePath + thumbnail_filename;
+            thumbnail_filepath = config.get('sourcePath') + thumbnail_filename;
         request(instance.thumbnail)
             .pipe(fs.createWriteStream(thumbnail_filepath))
             .on('close', function (){
@@ -66,14 +61,14 @@ function downloadThumbnail(instance){
 function downloadVideo(id){
     var video = youtubedl(
             'http://www.youtube.com/watch?v=' + id,
-        ['--format='+FORMAT_LIST[format]],
+        ['--format='+FORMAT_LIST[config.get('format')]],
         {
-            cwd: sourcePath,
+            cwd: config.get('sourcePath'),
             maxBuffer: Infinity
         }
         ),
         filename = id + '.mp4',
-        filepath = sourcePath + filename,
+        filepath = config.get('sourcePath') + filename,
         pos = 0;
 
     video.on('info', function (info){
@@ -156,6 +151,12 @@ function updateServer(){
         next();
     });
 
+    s.use('/api/', bodyParser.urlencoded({
+        extended: true
+    }));
+
+    s.use('/api/', bodyParser.json());
+
     s.use('/api/', dispatch({
         '/': function (req, res, next){
             var videos = [];
@@ -164,11 +165,20 @@ function updateServer(){
             });
             jsonResponse(res, videos);
         },
-        '/config/': function (req, res, next){
-            jsonResponse(res, {
-                format: format,
-                sourcePath: sourcePath
-            })
+        '/config/': {
+            GET: function (req, res, next){
+                jsonResponse(res, {
+                    format: config.get('format'),
+                    sourcePath: config.get('sourcePath')
+                })
+            },
+            POST: function (req, res, next){
+                var format = req.body.format,
+                    sourcePath = req.body.sourcePath;
+                config.put('format', format);
+                config.put('sourcePath', sourcePath);
+                jsonResponse(res, true);
+            }
         },
         '/clear/': function (req, res, next){
             db.keys().forEach(function (key){
@@ -187,7 +197,7 @@ function updateServer(){
     }));
 
     // SOURCE
-    s.use('/source', serveStatic(sourcePath));
+    s.use('/source', serveStatic(config.get('sourcePath')));
 
     serving = s.listen(PORT);
 }
@@ -207,13 +217,13 @@ function loadConfigs(){
         console.log('db migrate...');
     }
 
-    sourcePath = defaultConfig('sourcePath', process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'] + '/oka/');
-    console.log('source path: ' + sourcePath);
+    defaultConfig('sourcePath', process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'] + '/oka/');
+    console.log('source path: ' + config.get('sourcePath'));
 
-    db = flatfile(sourcePath + 'oka.db');
+    db = flatfile(config.get('sourcePath') + 'oka.db');
     db.on('open', function() { console.log('database ready!'); });
 
-    format = defaultConfig('format', 'best');
+    defaultConfig('format', 'best');
 
     updateServer();
 }
