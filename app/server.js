@@ -1,5 +1,5 @@
 const
-    VERSION = '0.3.1',
+    VERSION = '0.3.2',
     PORT = 8080,
     FORMAT_LIST = {
         best: 'best[vcodec=avc1.64001F]/best',
@@ -61,11 +61,11 @@ function downloadThumbnail(instance){
 function downloadVideo(id){
     var video = youtubedl(
             'http://www.youtube.com/watch?v=' + id,
-        ['--format='+FORMAT_LIST[config.get('format')]],
-        {
-            cwd: config.get('sourcePath'),
-            maxBuffer: Infinity
-        }
+            ['--format='+FORMAT_LIST[config.get('format')]],
+            {
+                cwd: config.get('sourcePath'),
+                maxBuffer: Infinity
+            }
         ),
         filename = id + '.mp4',
         filepath = config.get('sourcePath') + filename,
@@ -74,6 +74,7 @@ function downloadVideo(id){
     video.on('info', function (info){
         updateVideoIntance(id, 'title', info.title);
         updateVideoIntance(id, 'size', info.size);
+        updateVideoIntance(id, 'percent', 0);
         updateVideoIntance(id, 'thumbnail', info.thumbnail);
         downloadThumbnailById(id);
     });
@@ -143,7 +144,7 @@ function updateServer(){
     s = connect();
 
     // API middleware
-    s.use('/api/', function (req, res, next){
+    s.use('/api', function (req, res, next){
         console.log(req.method, req.url);
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Access-Control-Allow-Methods', 'POST, GET');
@@ -151,13 +152,13 @@ function updateServer(){
         next();
     });
 
-    s.use('/api/', bodyParser.urlencoded({
+    s.use('/api', bodyParser.urlencoded({
         extended: true
     }));
 
-    s.use('/api/', bodyParser.json());
+    s.use('/api', bodyParser.json());
 
-    s.use('/api/', dispatch({
+    s.use('/api', dispatch({
         '/': function (req, res, next){
             var videos = [];
             db.keys().forEach(function (key){
@@ -195,6 +196,13 @@ function updateServer(){
             res.end(JSON.stringify(loadVideo(id)));
         }
     }));
+
+    // SOURCE MIDDLEWARE
+    s.use('/source', function (req, res, next){
+        res.setHeader('Content-Disposition', 'attachment; filename=' + req.url.substr(1));
+        res.setHeader('Cache-Control', 'public');
+        next();
+    });
 
     // SOURCE
     s.use('/source', serveStatic(config.get('sourcePath')));

@@ -10,7 +10,8 @@ angular
         'com.2fdevs.videogular.plugins.controls',
         'com.javiercejudo.videogular.plugins.autohide-cursor',
         'oka.NavBarCtrl',
-        'oka.ConfigCtrl'
+        'oka.ConfigCtrl',
+        'oka.directives.VideoCard'
     ])
     .run(function ($rootScope, $http, $timeout, $interval, $sce){
         $rootScope.karaoke = false;
@@ -124,7 +125,7 @@ angular
 
         $rootScope.sourceUrl = function (input){
             return $sce.trustAsResourceUrl(OKASERVER_URL_SOURCE + input);
-        }
+        };
     })
     .filter('statusVerbose', function (){
         return function (input){

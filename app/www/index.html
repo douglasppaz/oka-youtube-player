@@ -36,19 +36,7 @@
 </nav>
 
 <div class="container">
-    <div class="panel" role="button" ng-repeat="video in videos | filter: { title: getQuery() }" ng-click="$root.playing_id = video.id;">
-        <div class="panel-body">
-            <div class="row">
-                <div class="col-xs-4">
-                    <img ng-if="video.thumbnail_filename" ng-src="{{ video.thumbnail_filename|sourceUrl }}" class="img-rounded img-responsive">
-                    <img ng-if="!video.thumbnail_filename" src="imgs/no-thumbnail.png" class="img-rounded img-responsive">
-                </div>
-                <div class="col-xs-8">
-                    <h4>{{ video.title }}<br><small>{{ video.status|statusVerbose }}</small></h4>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div ng-repeat="video in videos | filter: { title: getQuery() }" video-card="video"></div>
 </div>
 <div class="container" ng-show="ytsearch.length > 0">
     <h3>Busca no YouTube</h3>
@@ -130,8 +118,9 @@
 <script src="components/angular-debounce.js" type="text/javascript"></script>
 <script src="components/hide-cursor.js" type="text/javascript"></script>
 
-<script src="oka/NavBarCtrl.js" type="text/javascript"></script>
-<script src="oka/ConfigCtrl.js" type="text/javascript"></script>
+<script src="oka/directives/VideoCard.js" type="text/javascript"></script>
+<script src="oka/controllers/NavBarCtrl.js" type="text/javascript"></script>
+<script src="oka/controllers/ConfigCtrl.js" type="text/javascript"></script>
 <script src="oka/app.js" type="text/javascript"></script>
 </body>
 </html>
