@@ -11,7 +11,7 @@ angular
         'com.javiercejudo.videogular.plugins.autohide-cursor',
         'oka.NavBarCtrl',
         'oka.ConfigCtrl',
-        'oka.directives.VideoCard'
+        'oka.directives.videoCard'
     ])
     .run(function ($rootScope, $http, $timeout, $interval, $sce){
         $rootScope.karaoke = false;
