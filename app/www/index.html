@@ -116,8 +116,6 @@
     }
 
     window.onload = function () {
-        jqueryCorrect();
-
         if (typeof history.pushState === 'function') {
             history.pushState('jibberish', null, null);
             window.onpopstate = function () {
@@ -141,7 +139,7 @@
     }
 </script>
 
-<script src="components/jquery.min.js" type="text/javascript"></script>
+<script src="components/jquery.min.js" type="text/javascript" onload="jqueryCorrect();"></script>
 <script src="components/bootstrap.min.js" type="text/javascript"></script>
 <script src="components/angular.min.js" type="text/javascript"></script>
 <script src="components/angular-sanitize.min.js" type="text/javascript"></script>
