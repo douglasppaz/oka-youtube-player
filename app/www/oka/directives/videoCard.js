@@ -1,6 +1,6 @@
 angular
     .module('oka.directives.videoCard', [])
-    .controller('videoCardCtrl', function ($scope, $http, $window){
+    .controller('videoCardCtrl', function ($rootScope, $scope, $http, $window){
         $scope.updateVideo = function (){
             if($window.confirm('Tem certeza que deseja baixar novamente esse vídeo?')){
                 $http.get(OKASERVER_URL_API + 'video/' + $scope.video.id + '/update/');
@@ -8,7 +8,10 @@ angular
         };
         $scope.deleteVideo = function (){
             if($window.confirm('Tem certeza que deseja deletar esse vídeo?')){
-                $http.get(OKASERVER_URL_API + 'video/' + $scope.video.id + '/delete/');
+                $http.get(OKASERVER_URL_API + 'video/' + $scope.video.id + '/delete/')
+                    .success(function (){
+                        $rootScope.updateVideos();
+                    });
             }
         };
     })

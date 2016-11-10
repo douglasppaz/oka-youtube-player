@@ -1,4 +1,5 @@
-var gulp = require('gulp');
+var gulp = require('gulp'),
+    clean = require('gulp-clean');
 
 gulp.task('components', function() {
     console.log('copying components');
@@ -23,4 +24,8 @@ gulp.task('components', function() {
         'components/videogular-themes-default/fonts/**'
     ]).pipe(gulp.dest('app/www/components/fonts'));
 });
+gulp.task('removedb', function() {
+    gulp.src(['app/oka.config.db']).pipe(clean());
+});
+gulp.task('build', ['components', 'removedb']);
 gulp.task('default', ['components']);
