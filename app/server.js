@@ -207,7 +207,21 @@ function updateServer(){
     // SOURCE
     s.use('/source', serveStatic(config.get('sourcePath')));
 
+    // WWW
+    s.use(serveStatic(__dirname + '/www/'));
+
     serving = s.listen(PORT);
+
+    serving.on('error', function (e) {
+        switch(e.code){
+            case 'EADDRINUSE':
+                console.log('port ' + PORT + ' busy, trying start server again in 2 seconds');
+                setTimeout(updateServer, 2000);
+                break;
+            default:
+                console.log(e);
+        }
+    });
 }
 
 // config
