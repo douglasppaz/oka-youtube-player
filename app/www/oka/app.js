@@ -134,6 +134,8 @@ angular
                     return 'Baixando...';
                 case 2:
                     return 'Disponível';
+                case 3:
+                    return 'Para atualizar...';
                 default:
                     return 'Status #' + input;
             }

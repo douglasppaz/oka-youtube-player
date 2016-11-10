@@ -59,6 +59,11 @@ function downloadThumbnail(instance){
 }
 
 function downloadVideo(id){
+    downloading.push(id);
+
+    updateVideoIntance(id, 'status', 1);
+    updateVideoIntance(id, 'percent', 0);
+
     var video = youtubedl(
             'http://www.youtube.com/watch?v=' + id,
             ['--format='+FORMAT_LIST[config.get('format')]],
@@ -74,7 +79,6 @@ function downloadVideo(id){
     video.on('info', function (info){
         updateVideoIntance(id, 'title', info.title);
         updateVideoIntance(id, 'size', info.size);
-        updateVideoIntance(id, 'percent', 0);
         updateVideoIntance(id, 'thumbnail', info.thumbnail);
         downloadThumbnailById(id);
     });
@@ -101,8 +105,6 @@ function downloadVideo(id){
 
     updateVideoIntance(id, 'file', filepath);
     updateVideoIntance(id, 'filename', filename);
-
-    downloading.push(id);
 }
 
 function loadVideo(id){
@@ -125,7 +127,6 @@ function loadVideo(id){
 
     if(instance.status == 0){
         downloadVideo(id);
-        updateVideoIntance(id, 'status', 1);
     }
     if(instance.status == 1 && downloading.indexOf(id) == -1){
         downloadVideo(id);
@@ -145,7 +146,7 @@ function updateServer(){
 
     // API middleware
     s.use('/api', function (req, res, next){
-        console.log(req.method, req.url);
+        console.log('API', req.method, req.url);
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Access-Control-Allow-Methods', 'POST, GET');
         res.setHeader('Access-Control-Allow-Headers', '*');
@@ -196,7 +197,15 @@ function updateServer(){
                 jsonResponse(res, loadVideo(id));
             },
             '/update/': function (req, res, next, id){
-
+                updateVideoIntance(id, 'status', 3);
+                downloadVideo(id);
+                jsonResponse(res, true);
+            },
+            '/delete/': function (req, res, next, id){
+                deleteFile(db.get(id).file);
+                deleteFile(db.get(id).thumbnail_file);
+                db.del(id);
+                jsonResponse(res, true);
             }
         }
     }));
