@@ -1,4 +1,4 @@
-const OKASERVER_URL = 'http://localhost:8080/';
+const OKASERVER_URL = '/';
 const OKASERVER_URL_API = OKASERVER_URL + 'api/';
 const OKASERVER_URL_SOURCE = OKASERVER_URL + 'source/';
 const GOOGLE_CONSOLE_KEY = 'AIzaSyARJZO9ibD-I4k138tE5tiFy_JU59tZu8Y';
@@ -91,7 +91,7 @@ angular
         $rootScope.playing = null;
         $rootScope.updatePlaying = function (callback){
             if($rootScope.playing_id) {
-                $http.get(OKASERVER_URL_API + 'video/' + $rootScope.playing_id)
+                $http.get(OKASERVER_URL_API + 'video/' + $rootScope.playing_id + '/')
                     .success(function (data) {
                         $rootScope.playing = data;
                         if(callback !== undefined){

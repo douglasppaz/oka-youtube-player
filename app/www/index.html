@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>OKa Youtube Player</title>
 
     <link href="components/bootstrap.min.css" rel="stylesheet">
@@ -107,9 +108,40 @@
             window.$ = window.jQuery = module.exports;
         }
     }
+
+    function doEsc(){
+        var event = $.Event('keyup');
+        event.keyCode = 27;
+        $(window).trigger(event);
+    }
+
+    window.onload = function () {
+        jqueryCorrect();
+
+        if (typeof history.pushState === 'function') {
+            history.pushState('jibberish', null, null);
+            window.onpopstate = function () {
+                history.pushState('newjibberish', null, null);
+                doEsc();
+            };
+        }
+        else {
+            var ignoreHashChange = true;
+            window.onhashchange = function () {
+                if (!ignoreHashChange) {
+                    ignoreHashChange = true;
+                    window.location.hash = Math.random();
+                    doEsc();
+                }
+                else {
+                    ignoreHashChange = false;
+                }
+            };
+        }
+    }
 </script>
 
-<script src="components/jquery.min.js" type="text/javascript" onload="jqueryCorrect()"></script>
+<script src="components/jquery.min.js" type="text/javascript"></script>
 <script src="components/bootstrap.min.js" type="text/javascript"></script>
 <script src="components/angular.min.js" type="text/javascript"></script>
 <script src="components/angular-sanitize.min.js" type="text/javascript"></script>

@@ -191,9 +191,13 @@ function updateServer(){
             loadConfigs();
             jsonResponse(res, true);
         },
-        '/video/:id': function (req, res, next, id){
-            res.writeHead(200, {'Content-Type': 'application/json'});
-            res.end(JSON.stringify(loadVideo(id)));
+        '/video/:id': {
+            '/': function (req, res, next, id){
+                jsonResponse(res, loadVideo(id));
+            },
+            '/update/': function (req, res, next, id){
+
+            }
         }
     }));
 
