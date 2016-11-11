@@ -1,6 +1,7 @@
 const OKASERVER_URL = '/';
 const OKASERVER_URL_API = OKASERVER_URL + 'api/';
 const OKASERVER_URL_SOURCE = OKASERVER_URL + 'source/';
+const OKASERVER_WS_URL = 'ws://localhost:8081/';
 const GOOGLE_CONSOLE_KEY = 'AIzaSyARJZO9ibD-I4k138tE5tiFy_JU59tZu8Y';
 
 angular
@@ -11,9 +12,10 @@ angular
         'com.javiercejudo.videogular.plugins.autohide-cursor',
         'oka.NavBarCtrl',
         'oka.ConfigCtrl',
-        'oka.directives.videoCard'
+        'oka.directives.videoCard',
+        'oka.factorys.ws'
     ])
-    .run(function ($rootScope, $http, $timeout, $interval, $sce){
+    .run(function ($rootScope, $http, $timeout, $interval, $sce, $ws){
         $rootScope.karaoke = false;
         $rootScope.query = '';
         $rootScope.getQuery = function (){
@@ -126,6 +128,8 @@ angular
         $rootScope.sourceUrl = function (input){
             return $sce.trustAsResourceUrl(OKASERVER_URL_SOURCE + input);
         };
+
+        $ws.open();
     })
     .filter('statusVerbose', function (){
         return function (input){

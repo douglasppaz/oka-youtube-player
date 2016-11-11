@@ -1,6 +1,7 @@
 const
     VERSION = '0.3.2',
     PORT = 8080,
+    WS_PORT = 8081,
     FORMAT_LIST = {
         best: 'best[vcodec=avc1.64001F]/best',
         worst: 'worst[vcodec=avc1.64001F]/worst'
@@ -14,11 +15,13 @@ var fs = require('fs'),
     dispatch = require('dispatch'),
     serveStatic = require('serve-static'),
     bodyParser = require('body-parser'),
+    ws = require('nodejs-websocket'),
     config = flatfile(__dirname + '/oka.config.db'),
     db,
     downloading = [],
     s,
-    serving;
+    serving,
+    ws_server;
 
 
 // utils
@@ -151,7 +154,7 @@ function loadVideo(id){
 
 // start or update http server
 
-function updateServer(){
+function updateOrStartServer(){
     if(serving){ serving.close(); }
 
     s = connect();
@@ -241,7 +244,35 @@ function updateServer(){
         switch(e.code){
             case 'EADDRINUSE':
                 console.log('port ' + PORT + ' busy, trying start server again in 2 seconds');
-                setTimeout(updateServer, 2000);
+                setTimeout(updateOrStartServer, 2000);
+                break;
+            default:
+                console.log(e);
+        }
+    });
+}
+
+// start or update ws
+
+function updateOrStartWs() {
+    if(ws_server){ ws_server.close(); }
+
+    ws_server = ws.createServer(function (conn){
+        conn.on('text', function (str) {
+            console.log('Received ' + str);
+        });
+        conn.on('close', function (code, reason){
+            console.log('Connection closed');
+        });
+    });
+
+    ws_server.listen(WS_PORT);
+
+    ws_server.on('error', function (e) {
+        switch(e.code){
+            case 'EADDRINUSE':
+                console.log('port ' + WS_PORT + ' busy, trying start server again in 2 seconds');
+                setTimeout(updateOrStartWs, 2000);
                 break;
             default:
                 console.log(e);
@@ -278,10 +309,13 @@ function loadConfigs(){
 
     defaultConfig('format', 'best');
 
-    updateServer();
+    updateOrStartServer();
 }
 
 config.on('open', function() {
     console.log('config loaded!');
+
     loadConfigs();
+
+    updateOrStartWs();
 });
