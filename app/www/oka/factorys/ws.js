@@ -24,7 +24,20 @@ angular
                 };
 
                 connection.onmessage = function (e) {
-                    console.log(e);
+                    var data = e.data;
+                    try { data = JSON.parse(data); } catch (err) {}
+                    switch(data.act){
+                        case 'updateVideoInstance':
+                            for(var i = 0; i < $rootScope.videos.length; i++){
+                                if($rootScope.videos[i].id == data.id){
+                                    $rootScope.videos[i][data.field] = data.value;
+                                    break;
+                                }
+                            }
+                            break;
+                        default:
+                            console.log(data);
+                    }
                 };
             }
         }

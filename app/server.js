@@ -47,13 +47,27 @@ function intVersion(version) {
     return f;
 }
 
+function wsBroadcast(obj) {
+    if(ws_server) {
+        ws_server.connections.forEach(function (conn) {
+            conn.sendText(JSON.stringify(obj));
+        });
+    }
+}
+
 
 // main
 
-function updateVideoIntance(id, field, value){
+function updateVideoInstance(id, field, value){
     var instance = db.get(id);
     instance[field] = value;
     db.put(id, instance);
+    wsBroadcast({
+        act: 'updateVideoInstance',
+        id: id,
+        field: field,
+        value: value
+    })
 }
 
 function downloadThumbnailById(id){
@@ -67,8 +81,8 @@ function downloadThumbnail(instance){
         request(instance.thumbnail)
             .pipe(fs.createWriteStream(thumbnail_filepath))
             .on('close', function (){
-                updateVideoIntance(instance.id, 'thumbnail_file', thumbnail_filepath);
-                updateVideoIntance(instance.id, 'thumbnail_filename', thumbnail_filename);
+                updateVideoInstance(instance.id, 'thumbnail_file', thumbnail_filepath);
+                updateVideoInstance(instance.id, 'thumbnail_filename', thumbnail_filename);
             });
     }
 }
@@ -76,8 +90,8 @@ function downloadThumbnail(instance){
 function downloadVideo(id){
     downloading.push(id);
 
-    updateVideoIntance(id, 'status', 1);
-    updateVideoIntance(id, 'percent', 0);
+    updateVideoInstance(id, 'status', 1);
+    updateVideoInstance(id, 'percent', 0);
 
     var video = youtubedl(
             'http://www.youtube.com/watch?v=' + id,
@@ -92,13 +106,13 @@ function downloadVideo(id){
         pos = 0;
 
     video.on('info', function (info){
-        updateVideoIntance(id, 'title', info.title);
-        updateVideoIntance(id, 'size', info.size);
-        updateVideoIntance(id, 'thumbnail', info.thumbnail);
+        updateVideoInstance(id, 'title', info.title);
+        updateVideoInstance(id, 'size', info.size);
+        updateVideoInstance(id, 'thumbnail', info.thumbnail);
         downloadThumbnailById(id);
     });
     video.on('error', function (err){
-        updateVideoIntance(id, 'status', -err.code)
+        updateVideoInstance(id, 'status', -err.code)
     });
     video.on('data', function data(chunk) {
         pos += chunk.length;
@@ -107,19 +121,19 @@ function downloadVideo(id){
         if(size){
             var percent = (pos / size * 100).toFixed(2);
             if(percent - instance.percent > 2 || percent == 100) {
-                updateVideoIntance(id, 'percent', parseInt(percent));
+                updateVideoInstance(id, 'percent', parseInt(percent));
                 console.log(id + ': ' + percent + '%');
             }
         }
     });
     video.on('end', function () {
-        updateVideoIntance(id, 'status', 2);
+        updateVideoInstance(id, 'status', 2);
     });
 
     video.pipe(fs.createWriteStream(filepath));
 
-    updateVideoIntance(id, 'file', filepath);
-    updateVideoIntance(id, 'filename', filename);
+    updateVideoInstance(id, 'file', filepath);
+    updateVideoInstance(id, 'filename', filename);
 }
 
 function loadVideo(id){
@@ -212,7 +226,7 @@ function updateOrStartServer(){
                 jsonResponse(res, loadVideo(id));
             },
             '/update/': function (req, res, next, id){
-                updateVideoIntance(id, 'status', 3);
+                updateVideoInstance(id, 'status', 3);
                 downloadVideo(id);
                 jsonResponse(res, true);
             },
@@ -258,12 +272,7 @@ function updateOrStartWs() {
     if(ws_server){ ws_server.close(); }
 
     ws_server = ws.createServer(function (conn){
-        conn.on('text', function (str) {
-            console.log('Received ' + str);
-        });
-        conn.on('close', function (code, reason){
-            console.log('Connection closed');
-        });
+        conn.on('text', function (str) {});
     });
 
     ws_server.listen(WS_PORT);
