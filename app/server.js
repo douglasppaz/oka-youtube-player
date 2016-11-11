@@ -32,6 +32,18 @@ function jsonResponse(res, obj){
     res.end(JSON.stringify(obj));
 }
 
+function intVersion(version) {
+    var version_split = version.split('.'),
+        f = 0,
+        base = 1;
+    for(var i = version_split.length - 1; i >= 0; i--){
+        var ii = version_split[i];
+        base = base * 1000;
+        f += parseInt(ii) * (base / Math.pow(10, ii.length));
+    }
+    return f;
+}
+
 
 // main
 
@@ -249,14 +261,20 @@ function loadConfigs(){
     console.log('db version: ' + config.get('dbVersion'));
 
     if(config.get('dbVersion') != VERSION){
-        console.log('db migrate...');
+        console.log('config db migrate...');
     }
 
     defaultConfig('sourcePath', process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'] + '/oka/');
     console.log('source path: ' + config.get('sourcePath'));
 
     db = flatfile(config.get('sourcePath') + 'oka.db');
-    db.on('open', function() { console.log('database ready!'); });
+    db.on('open', function() {
+        console.log('database ready!');
+        if(db.get('dbVersion') === undefined) { db.put('dbVersion', VERSION); }
+        if(db.get('dbVersion') !== VERSION){
+            console.log('db migrate...');
+        }
+    });
 
     defaultConfig('format', 'best');
 
