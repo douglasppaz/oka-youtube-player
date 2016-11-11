@@ -31,6 +31,7 @@ angular
                             for(var i = 0; i < $rootScope.videos.length; i++){
                                 if($rootScope.videos[i].id == data.id){
                                     $rootScope.videos[i][data.field] = data.value;
+                                    $rootScope.$apply('videos');
                                     break;
                                 }
                             }

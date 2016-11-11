@@ -22,10 +22,11 @@ angular
             return $rootScope.karaoke ? 'karoke ' + $rootScope.query : $rootScope.query;
         };
         $rootScope.videos = [];
-        $rootScope.updateVideos = function () {
+        $rootScope.updateVideos = function (callback) {
             $http.get(OKASERVER_URL_API)
                 .success(function (data) {
                     $rootScope.videos = data;
+                    if(typeof callback === 'function') callback();
                 })
                 .error(function () {
                     $rootScope.videos = [];
@@ -90,37 +91,24 @@ angular
         $rootScope.$watch('query', queryChange);
 
         $rootScope.playing_id = null;
-        $rootScope.playing = null;
-        $rootScope.updatePlaying = function (callback){
-            if($rootScope.playing_id) {
-                $http.get(OKASERVER_URL_API + 'video/' + $rootScope.playing_id + '/')
-                    .success(function (data) {
-                        $rootScope.playing = data;
-                        if(callback !== undefined){
-                            callback();
-                        }
-                    });
-            }
-        };
-        $rootScope.$watch('playing_id', function (playing_id){
-            $rootScope.playing = null;
-            $rootScope.videos.forEach(function (video){
-                if(video.id == playing_id){
-                    $rootScope.playing = video;
-                    return true;
+        $rootScope.playing = function (){
+            for(var i = 0; i < $rootScope.videos.length; i++){
+                if($rootScope.videos[i].id == $rootScope.playing_id){
+                    return $rootScope.videos[i];
                 }
-            });
-            if(!$rootScope.playing && $rootScope.playing_id){
-                $rootScope.updatePlaying($rootScope.updateVideos);
+            }
+            return false;
+        };
+        $rootScope.$watch('playing_id', function (val){
+            if(val){
+                $http.get(OKASERVER_URL_API + 'video/' + val + '/');
             }
         });
-        $interval(function () {
-            $rootScope.updatePlaying();
-        }, 1000);
 
         $(window).keyup(function (e){
             if(e.keyCode == 27){
                 $rootScope.playing_id = null;
+                $rootScope.$apply('playing_id');
                 return false;
             }
         });

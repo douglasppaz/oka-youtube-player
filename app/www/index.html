@@ -9,7 +9,7 @@
     <link href="components/bootstrap.min.css" rel="stylesheet">
     <link href="components/videogular.min.css" rel="stylesheet">
 </head>
-<body class="with-navbar-top" ng-app="oka" ng-class="{'no-scroll':playing_id}">
+<body class="with-navbar-top" ng-app="oka" ng-class="{'no-scroll':playing()}">
 <nav class="navbar navbar-default navbar-fixed-top" ng-controller="NavBarCtrl">
     <div class="container">
         <div class="navbar-header">
@@ -56,11 +56,11 @@
     <p class="text-center" ng-show="ytsearch_nextPageToken && !ytsearch_loadingnext"><button type="button" class="btn btn-lg btn-primary" ng-click="ytsearch_loadMore()">Carregar mais...</button></p>
     <p class="text-center" ng-show="ytsearch_loadingnext"><small>Carregando...</small></p>
 </div>
-<div class="player" ng-if="playing_id">
-    <div class="loading" ng-if="playing.percent < 100"><div class="loading-progress" ng-style="{width: playing.percent + '%'}">{{ playing.percent }}%</div></div>
-    <div class="video" ng-if="playing.status == 2 && playing.filename">
+<div class="player" ng-if="playing()">
+    <div class="loading" ng-if="playing().percent < 100"><div class="loading-progress" ng-style="{width: playing().percent + '%'}">{{ playing().percent }}%</div></div>
+    <div class="video" ng-if="playing().status == 2 && playing().filename">
         <videogular vg-auto-play="true" vg-player-ready="$API.toggleFullScreen();" vg-complete="$root.playing_id = null;" vg-autohide-cursor="true">
-            <vg-media vg-src="[{src: sourceUrl(playing.filename), type: 'video/mp4'}]"></vg-media>
+            <vg-media vg-src="[{src: sourceUrl(playing().filename), type: 'video/mp4'}]"></vg-media>
 
             <vg-controls vg-autohide="true">
                 <vg-play-pause-button></vg-play-pause-button>

@@ -192,7 +192,7 @@ function updateOrStartServer(){
         '/': function (req, res, next){
             var videos = [];
             db.keys().forEach(function (key){
-                videos.push(db.get(key));
+                if(key != 'dbVersion') videos.push(db.get(key));
             });
             jsonResponse(res, videos);
         },
