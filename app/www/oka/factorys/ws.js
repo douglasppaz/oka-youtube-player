@@ -1,7 +1,8 @@
 angular
     .module('oka.factorys.ws', [])
     .factory('$ws', function ($rootScope, $timeout){
-        var connection;
+        var connection,
+            $ws;
 
         $rootScope.ws = {
             open: false
@@ -9,6 +10,13 @@ angular
 
         return {
             open: function (){
+                function tryConnect(){
+                    console.log('try open in 2 seconds');
+                    $rootScope.ws.open = false;
+                    $timeout($ws.open, 2000);
+                }
+                $ws = this;
+
                 console.log('open');
 
                 connection = new WebSocket(OKASERVER_WS_URL);
@@ -19,9 +27,10 @@ angular
 
                 connection.onerror = function (error) {
                     console.log(error);
-                    $rootScope.ws.open = false;
-                    $timeout(this.open, 2000);
+                    tryConnect();
                 };
+
+                connection.onclose = tryConnect;
 
                 connection.onmessage = function (e) {
                     var data = e.data;
@@ -35,6 +44,12 @@ angular
                                     break;
                                 }
                             }
+                            break;
+                        case 'updateVideos':
+                            $rootScope.updateVideos();
+                            break;
+                        case 'reload':
+                            location.reload();
                             break;
                         default:
                             console.log(data);

@@ -16,7 +16,7 @@ var fs = require('fs'),
     serveStatic = require('serve-static'),
     bodyParser = require('body-parser'),
     ws = require('nodejs-websocket'),
-    config = flatfile(__dirname + '/oka.config.db'),
+    config,
     db,
     downloading = [],
     s,
@@ -88,6 +88,7 @@ function downloadThumbnail(instance){
 }
 
 function downloadVideo(id){
+    console.log('start download ' + id);
     downloading.push(id);
 
     updateVideoInstance(id, 'status', 1);
@@ -152,6 +153,9 @@ function loadVideo(id){
             thumbnail_filename: null
         });
         instance = db.get(id);
+        wsBroadcast({
+            act: 'updateVideos'
+        });
     }
 
     if(instance.status == 0){
@@ -207,7 +211,13 @@ function updateOrStartServer(){
                 var format = req.body.format,
                     sourcePath = req.body.sourcePath;
                 config.put('format', format);
-                config.put('sourcePath', sourcePath);
+                if(config.get('sourcePath') != sourcePath) {
+                    config.put('sourcePath', sourcePath);
+                    wsBroadcast({
+                        act: 'reload'
+                    });
+                    reloadConfig();
+                }
                 jsonResponse(res, true);
             }
         },
@@ -311,9 +321,16 @@ function loadConfigs(){
     db.on('open', function() {
         console.log('database ready!');
         if(db.get('dbVersion') === undefined) { db.put('dbVersion', VERSION); }
+
         if(db.get('dbVersion') !== VERSION){
             console.log('db migrate...');
         }
+
+        db.keys().forEach(function (id){
+            if(db.get(id).status == 1){
+                downloadVideo(id);
+            }
+        });
     });
 
     defaultConfig('format', 'best');
@@ -321,10 +338,16 @@ function loadConfigs(){
     updateOrStartServer();
 }
 
-config.on('open', function() {
-    console.log('config loaded!');
+function reloadConfig(){
+    config = flatfile(__dirname + '/oka.config.db');
 
-    loadConfigs();
+    config.on('open', function() {
+        console.log('config loaded!');
 
-    updateOrStartWs();
-});
+        loadConfigs();
+
+        updateOrStartWs();
+    });
+}
+
+reloadConfig();
