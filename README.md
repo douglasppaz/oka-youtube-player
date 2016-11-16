@@ -13,8 +13,8 @@ https://www.dropbox.com/sh/mplcollalhsezdt/AACIgElDzsJg6b7LtUozOxTNa?dl=0
 ```
 mkdir build
 cd build/
-../node_modules/.bin/electron-packager ../app/ --platform=linux --app-version=0.3.1
-../node_modules/.bin/electron-packager ../app/ --platform=win32 --app-version=0.3.1 --icon=../app/icon.ico
+../node_modules/.bin/electron-packager ../app/ --platform=linux --app-version=0.3.2
+../node_modules/.bin/electron-packager ../app/ --platform=win32 --app-version=0.3.2 --icon=../app/icon.ico
 ```
 
 Atenção: O build para o Windows deve ser feita no mesmo. O binário correto para Windows do youtube-dl só é baixada utilizando o Windows.
