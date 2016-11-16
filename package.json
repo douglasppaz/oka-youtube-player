@@ -1,6 +1,6 @@
 {
   "name": "oka-youtube-player-dev-manager",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "OKa Youtube Player Dev Manager",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -25,6 +25,7 @@
   "devDependencies": {
     "electron": "^1.4.4",
     "electron-packager": "^8.1.0",
-    "gulp": "^3.9.1"
+    "gulp": "^3.9.1",
+    "gulp-clean": "^0.3.2"
   }
 }

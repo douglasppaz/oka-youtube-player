@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>OKa Youtube Player</title>
 
     <link href="components/bootstrap.min.css" rel="stylesheet">
     <link href="components/videogular.min.css" rel="stylesheet">
 </head>
-<body class="with-navbar-top" ng-app="oka" ng-class="{'no-scroll':playing_id}">
+<body class="with-navbar-top" ng-app="oka" ng-class="{'no-scroll':playing()}">
 <nav class="navbar navbar-default navbar-fixed-top" ng-controller="NavBarCtrl">
     <div class="container">
         <div class="navbar-header">
@@ -36,19 +37,7 @@
 </nav>
 
 <div class="container">
-    <div class="panel" role="button" ng-repeat="video in videos | filter: { title: getQuery() }" ng-click="$root.playing_id = video.id;">
-        <div class="panel-body">
-            <div class="row">
-                <div class="col-xs-4">
-                    <img ng-if="video.thumbnail_filename" ng-src="{{ video.thumbnail_filename|sourceUrl }}" class="img-rounded img-responsive">
-                    <img ng-if="!video.thumbnail_filename" src="imgs/no-thumbnail.png" class="img-rounded img-responsive">
-                </div>
-                <div class="col-xs-8">
-                    <h4>{{ video.title }}<br><small>{{ video.status|statusVerbose }}</small></h4>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div ng-repeat="video in videos | filter: { title: getQuery() }" video-card="video"></div>
 </div>
 <div class="container" ng-show="ytsearch.length > 0">
     <h3>Busca no YouTube</h3>
@@ -67,11 +56,11 @@
     <p class="text-center" ng-show="ytsearch_nextPageToken && !ytsearch_loadingnext"><button type="button" class="btn btn-lg btn-primary" ng-click="ytsearch_loadMore()">Carregar mais...</button></p>
     <p class="text-center" ng-show="ytsearch_loadingnext"><small>Carregando...</small></p>
 </div>
-<div class="player" ng-if="playing_id">
-    <div class="loading" ng-if="playing.percent < 100"><div class="loading-progress" ng-style="{width: playing.percent + '%'}">{{ playing.percent }}%</div></div>
-    <div class="video" ng-if="playing.status == 2 && playing.filename">
+<div class="player" ng-if="playing()">
+    <div class="loading" ng-if="playing().percent < 100"><div class="loading-progress" ng-style="{width: playing().percent + '%'}">{{ playing().percent }}%</div></div>
+    <div class="video" ng-if="playing().status == 2 && playing().filename">
         <videogular vg-auto-play="true" vg-player-ready="$API.toggleFullScreen();" vg-complete="$root.playing_id = null;" vg-autohide-cursor="true">
-            <vg-media vg-src="[{src: sourceUrl(playing.filename), type: 'video/mp4'}]"></vg-media>
+            <vg-media vg-src="[{src: sourceUrl(playing().filename), type: 'video/mp4'}]"></vg-media>
 
             <vg-controls vg-autohide="true">
                 <vg-play-pause-button></vg-play-pause-button>
@@ -105,11 +94,23 @@
                         <option value="worst">Pior</option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label for="sourcePath">Pasta com vídeos</label>
+                    <input id="sourcePath" type="text" class="form-control" ng-model="sourcePath">
+                </div>
+                <p class="text-right"><button type="button" class="btn btn-sm btn-primary" ng-click="updateConfig()">Salvar</button></p>
             </div>
             <ul class="nav nav-pills nav-stacked">
                 <li><a role="button" onclick="return false;" ng-click="clear()">Apagar todas as informações</a></li>
             </ul>
         </div>
+    </div>
+</div>
+
+<div class="loading" ng-class="{'open': loading.val>-1}">
+    <div class="loading-msg">
+        <span ng-show="loading.msg()">{{ loading.msg() }}</span>
+        <span ng-hide="loading.msg()">Carregando...</span>
     </div>
 </div>
 
@@ -119,9 +120,38 @@
             window.$ = window.jQuery = module.exports;
         }
     }
+
+    function doEsc(){
+        var event = $.Event('keyup');
+        event.keyCode = 27;
+        $(window).trigger(event);
+    }
+
+    window.onload = function () {
+        if (typeof history.pushState === 'function') {
+            history.pushState('jibberish', null, null);
+            window.onpopstate = function () {
+                history.pushState('newjibberish', null, null);
+                doEsc();
+            };
+        }
+        else {
+            var ignoreHashChange = true;
+            window.onhashchange = function () {
+                if (!ignoreHashChange) {
+                    ignoreHashChange = true;
+                    window.location.hash = Math.random();
+                    doEsc();
+                }
+                else {
+                    ignoreHashChange = false;
+                }
+            };
+        }
+    }
 </script>
 
-<script src="components/jquery.min.js" type="text/javascript" onload="jqueryCorrect()"></script>
+<script src="components/jquery.min.js" type="text/javascript" onload="jqueryCorrect();"></script>
 <script src="components/bootstrap.min.js" type="text/javascript"></script>
 <script src="components/angular.min.js" type="text/javascript"></script>
 <script src="components/angular-sanitize.min.js" type="text/javascript"></script>
@@ -130,8 +160,11 @@
 <script src="components/angular-debounce.js" type="text/javascript"></script>
 <script src="components/hide-cursor.js" type="text/javascript"></script>
 
-<script src="oka/NavBarCtrl.js" type="text/javascript"></script>
-<script src="oka/ConfigCtrl.js" type="text/javascript"></script>
+<script src="oka/controllers/NavBarCtrl.js" type="text/javascript"></script>
+<script src="oka/controllers/ConfigCtrl.js" type="text/javascript"></script>
+<script src="oka/directives/videoCard.js" type="text/javascript"></script>
+<script src="oka/factorys/ws.js" type="text/javascript"></script>
+<script src="oka/factorys/loading.js" type="text/javascript"></script>
 <script src="oka/app.js" type="text/javascript"></script>
 </body>
 </html>

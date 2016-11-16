@@ -13,7 +13,7 @@ function createWindow(){
         icon: __dirname + '/icon.png'
     });
     win.setMenu(null);
-    win.loadURL('file://' + __dirname + '/www/index.html');
+    win.loadURL('http://localhost:8080/');
     win.on('closed', function (){
         win = null;
     });
