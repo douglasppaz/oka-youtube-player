@@ -1,0 +1,32 @@
+@import "variables";
+
+.loading {
+  position: fixed;
+  display: none;
+  left: 0;
+  top: 0;
+  z-index: @zindex-loading;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,.75);
+
+  &.open {
+    display: block;
+  }
+
+  &-msg {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+
+    span {
+      display: block;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      color: #FFFFFF;
+      transform: translateX(-50%) translateY(-50%);
+    }
+  }
+}

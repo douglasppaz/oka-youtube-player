@@ -1,7 +1,7 @@
 const OKASERVER_URL = '/';
 const OKASERVER_URL_API = OKASERVER_URL + 'api/';
 const OKASERVER_URL_SOURCE = OKASERVER_URL + 'source/';
-const OKASERVER_WS_URL = 'ws://localhost:8081/';
+const OKASERVER_WS_URL = 'ws://' + window.location.hostname + ':8081/';
 const GOOGLE_CONSOLE_KEY = 'AIzaSyARJZO9ibD-I4k138tE5tiFy_JU59tZu8Y';
 
 angular
@@ -13,9 +13,10 @@ angular
         'oka.NavBarCtrl',
         'oka.ConfigCtrl',
         'oka.directives.videoCard',
-        'oka.factorys.ws'
+        'oka.factorys.ws',
+        'oka.factorys.loading'
     ])
-    .run(function ($rootScope, $http, $timeout, $interval, $sce, $ws){
+    .run(function ($rootScope, $http, $timeout, $sce, $ws){
         $rootScope.karaoke = false;
         $rootScope.query = '';
         $rootScope.getQuery = function (){
@@ -33,7 +34,6 @@ angular
                 });
         };
         $rootScope.updateVideos();
-        $interval($rootScope.updateVideos, 30 * 1000);
 
         $rootScope.ytsearch = [];
         $rootScope.ytsearch_url = null;
