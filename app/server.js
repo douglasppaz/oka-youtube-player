@@ -21,7 +21,8 @@ var fs = require('fs'),
     downloading = [],
     s,
     serving,
-    ws_server;
+    ws_server,
+    players = [];
 
 
 // utils
@@ -245,6 +246,18 @@ function updateOrStartServer(){
                 deleteFile(db.get(id).thumbnail_file);
                 db.del(id);
                 jsonResponse(res, true);
+            }
+        },
+        '/players/': function (req, res, next){
+            jsonResponse(res, players);
+        },
+        '/player/add/': function (req, res, next){
+            var name = req.body.name;
+            if(players.indexOf(name) == -1){
+                players.push(name);
+                jsonResponse(res, true);
+            } else {
+                jsonResponse(res, false);
             }
         }
     }));

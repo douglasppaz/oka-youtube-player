@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>OKa Youtube Player</title>
 
-    <link href="components/bootstrap.min.css" rel="stylesheet">
-    <link href="components/videogular.min.css" rel="stylesheet">
+    <link href="components/bootstrap.min.css" rel="stylesheet" type="text/css">
+    <link href="components/videogular.min.css" rel="stylesheet" type="text/css">
 </head>
 <body class="with-navbar-top" ng-app="oka" ng-class="{'no-scroll':playing()}">
 <nav class="navbar navbar-default navbar-fixed-top" ng-controller="NavBarCtrl">
@@ -22,9 +22,6 @@
             <span class="navbar-brand">OKa</span>
         </div>
         <div id="navbar" class="collapse navbar-collapse">
-            <ul class="nav navbar-nav navbar-right">
-                <li><a role="button" onclick="return false;" data-toggle="modal" data-target="#config"><span class="glyphicon glyphicon-cog"></span></a></li>
-            </ul>
             <form class="navbar-form navbar-left" ng-submit="forceSearch()">
                 <div class="input-group">
                     <label for="karaoke" class="input-group-addon"><input type="checkbox" id="karaoke" ng-model="$root.karaoke"> <span class="glyphicon glyphicon-headphones"></span> <span ng-show="karaoke">Karaoke</span></label>
@@ -32,6 +29,10 @@
                     <span class="input-group-btn"><button class="btn btn-default" type="submit"><span class="glyphicon glyphicon-search"></span></button></span>
                 </div>
             </form>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a role="button" onclick="return false;" ng-click="turnPlayerMode()"><span class="glyphicon glyphicon-play"></span> <span class="hidden-lg hidden-md hidden-sm">Apenas tocador</span></a></li>
+                <li><a role="button" onclick="return false;" data-toggle="modal" data-target="#config"><span class="glyphicon glyphicon-cog"></span> <span class="hidden-lg hidden-md hidden-sm">Configurações</span></a></li>
+            </ul>
         </div>
     </div>
 </nav>
@@ -56,10 +57,11 @@
     <p class="text-center" ng-show="ytsearch_nextPageToken && !ytsearch_loadingnext"><button type="button" class="btn btn-lg btn-primary" ng-click="ytsearch_loadMore()">Carregar mais...</button></p>
     <p class="text-center" ng-show="ytsearch_loadingnext"><small>Carregando...</small></p>
 </div>
+
 <div class="player" ng-if="playing()">
     <div class="loading" ng-if="playing().percent < 100"><div class="loading-progress" ng-style="{width: playing().percent + '%'}">{{ playing().percent }}%</div></div>
     <div class="video" ng-if="playing().status == 2 && playing().filename">
-        <videogular vg-auto-play="true" vg-player-ready="$API.toggleFullScreen();" vg-complete="$root.playing_id = null;" vg-autohide-cursor="true">
+        <videogular ng-if="playing().status == 2 && playing().filename" vg-auto-play="true" vg-player-ready="$API.toggleFullScreen();" vg-complete="$root.playing_id = null;" vg-autohide-cursor="true">
             <vg-media vg-src="[{src: sourceUrl(playing().filename), type: 'video/mp4'}]"></vg-media>
 
             <vg-controls vg-autohide="true">

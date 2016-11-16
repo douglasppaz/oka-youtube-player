@@ -16,7 +16,7 @@ angular
         'oka.factorys.ws',
         'oka.factorys.loading'
     ])
-    .run(function ($rootScope, $http, $timeout, $sce, $ws){
+    .run(function ($rootScope, $http, $timeout, $sce, $ws, $q){
         $rootScope.karaoke = false;
         $rootScope.query = '';
         $rootScope.getQuery = function (){
@@ -118,6 +118,49 @@ angular
         };
 
         $ws.open();
+
+        $rootScope.player_name = null;
+        $rootScope.playerMode = false;
+
+        $rootScope.setPlayerName = function (){
+            return $q(function (resolve, reject){
+                var player_name;
+                while(!player_name){
+                    player_name = window.prompt('Qual o nome desse tocador?');
+                    if(player_name === null){
+                        reject();
+                        break;
+                    }
+                }
+                $http({
+                    url: OKASERVER_URL_API + 'player/add/',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    method: 'post',
+                    data: $.param({name: player_name})
+                })
+                    .success(function (data){
+                        if(data){
+                            $rootScope.player_name = player_name;
+                        } else {
+                            alert('Já existe um tocador com esse nome');
+                            $rootScope.setPlayerName();
+                        }
+                    })
+                    .error(reject);
+            });
+        };
+
+        $rootScope.turnPlayerMode = function (){
+            $rootScope.setPlayerName()
+                .then(function (data){
+                    $rootScope.playerMode = true;
+                    console.log(data);
+                }, function (){
+                    $rootScope.playerMode = false;
+                });
+        };
     })
     .filter('statusVerbose', function (){
         return function (input){
